@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas Brief — UX Flow</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--dark:#1E1B4B;--mid:#4F46E5;--accent:#6366F1;--light:#818CF8;--lavender:#EEF2FF;--success:#16A34A;--err:#DC2626;--warn:#D97706;--bg:#F5F3FF;--white:#fff;--text:#111827;--muted:#6B7280;--border:#E5E7EB;--shadow:0 1px 3px rgba(79,70,229,.1);--shadow-md:0 4px 12px rgba(79,70,229,.12)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#1E1B4B;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.browser{width:1100px;background:#2D2A6E;border-radius:16px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.5)}
+.bbar{background:#3D3A7E;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.bdots{display:flex;gap:6px}
+.bd{width:12px;height:12px;border-radius:50%}
+.bd-r{background:#FF5F57}.bd-y{background:#FFBD2E}.bd-g{background:#28CA41}
+.burl{flex:1;background:#2D2A6E;border-radius:6px;padding:6px 12px;font-size:12px;color:rgba(255,255,255,.6);margin:0 12px}
+.bbody{background:var(--bg);min-height:700px}
+.screen{display:none;width:100%;min-height:700px}
+.screen.active{display:flex}
+/* Sidebar */
+.shell{display:flex;width:100%;min-height:700px}
+.sb{width:215px;flex-shrink:0;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sb-logo{padding:15px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.sb-icon{width:26px;height:26px;background:linear-gradient(135deg,var(--mid),var(--accent));border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:900}
+.sb-name{font-size:14px;font-weight:700;color:var(--dark)}
+.sb-sec{padding:11px 12px 3px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 11px;border-radius:7px;margin:1px 5px;font-size:13px;color:var(--muted);cursor:pointer}
+.sb-item.act{background:var(--lavender);color:var(--mid);font-weight:600}
+.sb-div{height:1px;background:var(--border);margin:7px 11px}
+.sb-bot{margin-top:auto;padding:11px}
+.sb-user{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:#F9FAFB}
+.sb-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--mid),var(--accent));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.sb-un{font-size:12px;font-weight:600;color:var(--text)}
+.sb-ur{font-size:10.5px;color:var(--muted)}
+.main{flex:1;overflow:auto;display:flex;flex-direction:column}
+.mhdr{padding:14px 22px;border-bottom:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.mhdr-t{font-size:14.5px;font-weight:700;color:var(--dark)}
+.mhdr-s{font-size:11.5px;color:var(--muted);margin-top:2px}
+.mbody{padding:20px 22px;flex:1;overflow:auto}
+.btn-p{background:linear-gradient(135deg,var(--mid),var(--accent));color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(99,102,241,.3)}
+.btn-g{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:7px;padding:7px 13px;font-size:13px;cursor:pointer}
+.btn-s{background:#fff;color:var(--mid);border:1.5px solid var(--accent);border-radius:7px;padding:7px 13px;font-size:13px;font-weight:600;cursor:pointer}
+/* Nav */
+.snav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(30,27,75,.92);border-radius:50px;padding:9px 18px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(10px);z-index:100}
+.sc{color:#fff;font-size:12.5px;font-weight:600}
+.nb{padding:7px 15px;border-radius:22px;font-size:12.5px;font-weight:600;cursor:pointer;border:none}
+.nb-pr{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
+.nb-nx{background:linear-gradient(135deg,var(--mid),var(--accent));color:#fff}
+.nb:disabled{opacity:.3;cursor:not-allowed}
+.dots{display:flex;gap:5px}
+.dt{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.25);transition:all .2s}
+.dt.a{background:#818CF8;width:18px}
+/* S1 */
+.srow{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px}
+.scard{background:#fff;border-radius:9px;border:1px solid var(--border);padding:13px 14px;border-top:3px solid var(--accent)}
+.sl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.sv{font-size:20px;font-weight:700;color:var(--dark)}
+.ss{font-size:11px;color:var(--muted);margin-top:2px}
+.cgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.cc{background:#fff;border-radius:11px;border:1px solid var(--border);padding:14px;cursor:pointer;transition:all .2s}
+.cc:hover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.cc.hl{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.ccn{font-size:13.5px;font-weight:700;color:var(--dark);margin-bottom:2px}
+.ccd{font-size:11px;color:var(--muted);margin-bottom:9px}
+.ccm{display:flex;justify-content:space-between;align-items:center}
+.ccl{font-size:10.5px;color:var(--muted)}
+.ccs{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px}
+.ccs.due{background:#FEF3C7;color:#92400E}
+.ccs.sent{background:#ECFDF5;color:#065F46}
+.ccs.draft{background:#EEF2FF;color:#3730A3}
+.gcta{background:linear-gradient(135deg,#1E1B4B,#4F46E5);border-radius:11px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+.gcta h3{font-size:13.5px;font-weight:700;color:#fff;margin-bottom:2px}
+.gcta p{font-size:11.5px;color:rgba(255,255,255,.55)}
+.gcta-r{display:flex;align-items:center;gap:14px}
+.gstat{text-align:center}
+.gstat-v{font-size:17px;font-weight:700;color:#fff}
+.gstat-l{font-size:9.5px;color:rgba(255,255,255,.5)}
+.gcta-btn{background:#fff;color:var(--mid);border:none;border-radius:7px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer}
+/* S2 config */
+.cfg-layout{display:grid;grid-template-columns:1fr 280px;gap:18px}
+.card{background:#fff;border-radius:11px;border:1px solid var(--border);padding:18px;box-shadow:var(--shadow)}
+.ft{font-size:10.5px;font-weight:700;color:var(--dark);text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.fl{font-size:11.5px;font-weight:600;color:#374151;margin-bottom:5px;display:block}
+.fi{width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:13.5px;color:var(--text);background:#fff;outline:none}
+.fi:focus{border-color:var(--accent)}
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.fld{margin-bottom:11px}
+.trow{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;background:#F9FAFB;border:1.5px solid var(--border);border-radius:7px;margin-bottom:7px}
+.tl label{font-size:13px;font-weight:500;display:block}
+.tl span{font-size:11px;color:var(--muted)}
+.tog{position:relative;width:36px;height:19px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tsl{position:absolute;inset:0;background:#CBD5E0;border-radius:19px;cursor:pointer;transition:.3s}
+.tsl:before{content:"";position:absolute;width:13px;height:13px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.tog input:checked+.tsl{background:var(--accent)}
+.tog input:checked+.tsl:before{transform:translateX(17px)}
+/* Activity table - fully editable */
+.atbl{width:100%;border-collapse:collapse;margin-bottom:6px}
+.atbl th{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:5px 8px;background:#F9FAFB;border:1px solid var(--border);text-align:left}
+.atbl td{padding:3px 5px;border:1px solid var(--border)}
+.atbl-inp{width:100%;border:none;outline:none;font-size:12.5px;color:var(--text);background:transparent;padding:4px 5px;border-radius:4px}
+.atbl-inp:hover{background:#F0F0FF}
+.atbl-inp:focus{background:#EEF2FF;outline:1.5px solid var(--accent)}
+.atbl-sel{width:100%;border:none;outline:none;font-size:12px;color:var(--text);background:transparent;padding:4px 3px;cursor:pointer;border-radius:4px}
+.atbl-sel:hover{background:#F0F0FF}
+.atbl-sel:focus{background:#EEF2FF}
+.atbl-rm{background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:14px;padding:3px 6px;border-radius:4px;line-height:1}
+.atbl-rm:hover{color:var(--err);background:#FEF2F2}
+.add-row{font-size:12px;color:var(--accent);border:1px dashed var(--light);background:transparent;padding:4px 11px;border-radius:6px;cursor:pointer;font-weight:500;margin-top:5px}
+.add-row:hover{background:#EEF2FF}
+.dsit{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text);margin-bottom:5px}
+.dsd{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+/* S3 exec */
+.exec-sp{display:flex;width:100%;min-height:700px}
+.elp{width:270px;flex-shrink:0;background:var(--dark);display:flex;flex-direction:column}
+.elp-h{padding:15px 15px 11px;border-bottom:1px solid rgba(255,255,255,.08)}
+.elp-b2{font-size:9px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;display:flex;align-items:center;gap:5px}
+.elp-bd{width:5px;height:5px;border-radius:50%;background:var(--light)}
+.elp-t{font-size:14px;font-weight:700;color:#fff}
+.elp-s{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+.elp-tm{font-size:12px;font-weight:600;color:rgba(255,255,255,.55);margin-top:4px}
+.elp-body{flex:1;padding:11px 13px;overflow:auto}
+.agh{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:7px 4px 3px;display:flex;align-items:center;gap:5px}
+.agh.or{color:#93C5FD}.agh.da{color:#86EFAC}.agh.na{color:#C4B5FD}
+.agd{width:5px;height:5px;border-radius:50%;background:currentColor}
+.stp{display:flex;align-items:center;gap:7px;padding:3px 5px;border-radius:5px;margin-bottom:1px}
+.si{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0}
+.si.d{background:rgba(22,163,74,.2);color:#86EFAC}
+.si.r{background:rgba(99,102,241,.3);color:#C4B5FD}
+.si.p{background:rgba(255,255,255,.07);color:rgba(255,255,255,.25)}
+.st2{font-size:11px;color:rgba(255,255,255,.55)}
+.st2.ac{color:#fff;font-weight:500}
+.st2.dn{color:rgba(255,255,255,.3)}
+.elp-f{padding:11px 13px;border-top:1px solid rgba(255,255,255,.08)}
+.eprog{height:3px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.epf{height:100%;background:linear-gradient(90deg,var(--accent),var(--light));border-radius:3px;width:60%}
+.erp{flex:1;background:#fff;overflow:auto;padding:20px}
+.rmh{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:11px;border-bottom:2px solid var(--dark);margin-bottom:16px}
+.rmb{font-size:15px;font-weight:700;color:var(--dark)}
+.rmb span{color:var(--accent);margin:0 4px}
+.gpill{background:#EEF2FF;border:1px solid #C7D2FE;color:#4338CA;border-radius:20px;padding:3px 9px;font-size:10px}
+.msec{margin-bottom:14px}
+.mst{font-size:12px;font-weight:700;color:var(--dark);margin-bottom:6px;padding-bottom:5px;border-bottom:1.5px solid #F3F4F6}
+.mk4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:7px}
+.mk{background:#F9FAFB;border-radius:6px;padding:8px 9px;border-top:2px solid var(--accent)}
+.mkl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:2px}
+.mkv{font-size:14px;font-weight:700;color:var(--dark)}
+.mkd{font-size:10px;font-weight:600;color:var(--success);margin-top:1px}
+.sk{background:linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 50%,#F3F4F6 75%);background-size:200% 100%;animation:ska 1.4s infinite;border-radius:5px;margin-bottom:6px}
+@keyframes ska{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skl{height:11px;width:100%}.skl.w8{width:80%}.skl.w6{width:60%}
+.skb{height:50px;width:100%}
+.sdin{background:linear-gradient(135deg,var(--dark),var(--mid));color:#fff;padding:7px 10px;border-radius:5px;font-size:11px;font-weight:600;margin-bottom:10px;margin-top:2px}
+.mib{background:#EEF2FF;border-left:2px solid var(--accent);border-radius:0 5px 5px 0;padding:7px 10px;font-size:11.5px;color:var(--dark);line-height:1.5;margin-top:6px}
+.mtbl{width:100%;border-collapse:collapse;font-size:11px}
+.mtbl th{background:var(--mid);color:#fff;padding:5px 7px;font-size:10px;font-weight:600;text-align:left}
+.mtbl td{padding:4px 7px;border-bottom:1px solid #F3F4F6;color:#374151}
+/* S4 preview */
+.prev-layout{display:grid;grid-template-columns:1fr 200px;gap:16px}
+.kpi4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:11px}
+.kb{background:#F9FAFB;border-radius:8px;padding:11px 12px;border-top:2.5px solid var(--accent)}
+.kbl{font-size:9.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.kbv{font-size:17px;font-weight:700;color:var(--dark)}
+.kbd{font-size:11px;font-weight:600;color:var(--success);margin-top:2px}
+.fsec{margin-bottom:20px}
+.fst{font-size:13.5px;font-weight:700;color:var(--dark);margin-bottom:9px;padding-bottom:7px;border-bottom:1.5px solid #F3F4F6}
+.ftbl{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:7px}
+.ftbl th{background:var(--mid);color:#fff;padding:6px 8px;text-align:left;font-size:11px;font-weight:600}
+.ftbl td{padding:5px 8px;border-bottom:1px solid #F3F4F6;color:#374151}
+.ftbl tr:nth-child(even) td{background:#FAFAFA}
+.fib{background:#EEF2FF;border-left:2.5px solid var(--accent);border-radius:0 7px 7px 0;padding:10px 13px;margin-top:9px}
+.fibl{font-size:9.5px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.fib ul{list-style:none;padding:0}
+.fib li{font-size:12px;color:var(--dark);line-height:1.55;padding:3px 0 3px 11px;position:relative}
+.fib li:before{content:"•";position:absolute;left:0;color:var(--accent);font-weight:700}
+.sdiv{background:linear-gradient(135deg,var(--dark),var(--mid));color:#fff;padding:9px 15px;border-radius:7px;font-size:12px;font-weight:600;margin-bottom:16px;margin-top:2px}
+.rfhdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:13px;border-bottom:2px solid var(--dark);margin-bottom:18px}
+.rfb{font-size:17px;font-weight:700;color:var(--dark)}
+.rfb span{color:var(--accent);margin:0 4px}
+.rfp{font-size:11.5px;color:var(--muted);margin-top:3px}
+.rfm{text-align:right;font-size:11px;color:var(--muted);line-height:1.8}
+.rpill{background:#ECFDF5;border:1px solid #6EE7B7;color:#065F46;border-radius:20px;padding:3px 9px;font-size:10px;display:inline-block;margin-top:3px}
+.tcard{background:#fff;border-radius:9px;border:1px solid var(--border);padding:13px;margin-bottom:9px;position:sticky;top:0}
+.ttl{font-size:10.5px;font-weight:700;color:var(--dark);text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px}
+.titem{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;font-size:11.5px;color:var(--success);margin-bottom:1px}
+.tdot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.acard{background:#fff;border-radius:9px;border:1px solid var(--border);padding:13px;margin-bottom:9px}
+.acard h4{font-size:11.5px;font-weight:700;color:var(--dark);margin-bottom:9px}
+.abtn{width:100%;padding:8px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;border:none;margin-bottom:5px;display:flex;align-items:center;justify-content:center;gap:5px}
+.ab-p{background:linear-gradient(135deg,var(--mid),var(--accent));color:#fff}
+.ab-s{background:#fff;color:var(--mid);border:1.5px solid var(--accent)}
+.ab-g{background:#F9FAFB;color:var(--muted);border:1px solid var(--border)}
+/* Download overlay */
+.dloverlay{display:none;position:absolute;inset:0;background:rgba(255,255,255,.95);align-items:center;justify-content:center;z-index:10}
+.dlcard{text-align:center;padding:32px}
+.dlicon{font-size:44px;margin-bottom:11px}
+.dltitle{font-size:17px;font-weight:700;color:var(--dark);margin-bottom:5px}
+.dlsub{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5}
+.dlbar{height:5px;background:#E5E7EB;border-radius:5px;overflow:hidden;width:260px;margin:0 auto 14px}
+.dlf{height:100%;background:linear-gradient(90deg,var(--mid),var(--accent));border-radius:5px;animation:dlani 2.5s ease forwards}
+@keyframes dlani{from{width:0}to{width:100%}}
+.dlst{font-size:12px;color:var(--muted);margin-bottom:14px}
+/* S5 edit with chat */
+.edit-shell{display:flex;width:100%;min-height:700px}
+/* Edit sidebar nav */
+.edit-sb{width:215px;flex-shrink:0;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column}
+/* Edit main: report + chat */
+.edit-main-area{flex:1;display:flex;flex-direction:column}
+.edit-mhdr{padding:13px 20px;border-bottom:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.edit-content{display:flex;flex:1;min-height:620px;overflow:hidden}
+/* Report panel (65%) */
+.edit-rpt{flex:1;overflow-y:auto;background:#FAFAFA;border-right:1px solid var(--border);padding:18px 20px}
+.edit-rhdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:11px;border-bottom:2px solid var(--dark);margin-bottom:16px}
+.edit-brand{font-size:15px;font-weight:700;color:var(--dark)}
+.edit-brand span{color:var(--accent);margin:0 3px}
+.edit-period{font-size:11px;color:var(--muted);margin-top:2px}
+.edit-mode-pill{font-size:10px;font-weight:700;background:var(--lavender);color:var(--mid);padding:3px 9px;border-radius:20px;border:1px solid #C7D2FE}
+/* Editable section blocks */
+.esw{border-radius:8px;border:1.5px solid transparent;margin-bottom:10px;transition:all .2s;cursor:pointer;position:relative}
+.esw:hover{border-color:rgba(99,102,241,.4);background:#fff;box-shadow:0 2px 8px rgba(99,102,241,.08)}
+.esw.sel{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.esw.updated{border-color:var(--success);background:#fff;}
+@keyframes flashg{0%,100%{box-shadow:0 0 0 3px rgba(22,163,74,.15)}50%{box-shadow:0 0 0 6px rgba(22,163,74,.25)}}
+.esw.flash{animation:flashg 1s ease 2}
+.esi2{padding:11px 13px}
+.esh2{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.esn2{font-size:12.5px;font-weight:700;color:var(--dark)}
+.esb2{font-size:10.5px;font-weight:600;color:var(--accent);background:var(--lavender);border:none;border-radius:6px;padding:2px 8px;cursor:pointer;opacity:0;transition:opacity .2s}
+.esw:hover .esb2,.esw.sel .esb2{opacity:1}
+.esw.sel .esb2{background:var(--accent);color:#fff}
+.esw.updated .esb2{background:#ECFDF5;color:var(--success);opacity:1}
+.esprev{font-size:11.5px;color:var(--muted);line-height:1.45}
+.esk4{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:5px}
+.emk{background:var(--lavender);border-radius:4px;padding:5px 6px;text-align:center}
+.emkv{font-size:12px;font-weight:700;color:var(--dark)}
+.emkl{font-size:8.5px;color:var(--muted)}
+.etbl{width:100%;border-collapse:collapse;font-size:10.5px}
+.etbl th{background:var(--mid);color:#fff;padding:4px 7px;font-size:9.5px;font-weight:600;text-align:left}
+.etbl td{padding:4px 7px;border-bottom:1px solid #F3F4F6;color:#374151}
+.eib{background:#EEF2FF;border-left:2px solid var(--accent);border-radius:0 5px 5px 0;padding:6px 10px;font-size:11px;color:var(--dark);line-height:1.45;margin-top:5px}
+.esb3{background:linear-gradient(135deg,var(--dark),var(--mid));color:#fff;padding:6px 10px;border-radius:5px;font-size:10.5px;font-weight:600;margin:4px 0 7px}
+/* Chat panel (35%) */
+.chat-panel{width:340px;flex-shrink:0;display:flex;flex-direction:column;background:#fff}
+/* Onboarding hint */
+.ob-hint{background:linear-gradient(135deg,#EEF2FF,#F5F3FF);border-bottom:1px solid #C7D2FE;padding:11px 14px;display:flex;gap:9px;align-items:flex-start}
+.ob-icon{font-size:16px;flex-shrink:0}
+.ob-t{font-size:12px;font-weight:700;color:var(--dark);margin-bottom:2px}
+.ob-s{font-size:11.5px;color:var(--muted);line-height:1.45}
+.ob-dis{font-size:10.5px;font-weight:600;color:var(--accent);cursor:pointer;margin-top:4px;display:inline-block}
+/* Chat header */
+.chat-hdr{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.chat-hdr-icon{width:26px;height:26px;background:linear-gradient(135deg,var(--mid),var(--accent));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.chat-hdr-t{font-size:13px;font-weight:700;color:var(--dark)}
+.chat-hdr-s{font-size:10.5px;color:var(--success)}
+/* Chat messages */
+.chat-msgs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:90%}
+.msg.ai{align-self:flex-start}
+.msg.user{align-self:flex-end}
+.msg-bubble{padding:9px 12px;border-radius:10px;font-size:12.5px;line-height:1.5}
+.msg.ai .msg-bubble{background:#F3F4F6;color:var(--text);border-radius:2px 10px 10px 10px}
+.msg.user .msg-bubble{background:linear-gradient(135deg,var(--mid),var(--accent));color:#fff;border-radius:10px 2px 10px 10px}
+.msg-meta{font-size:10px;color:var(--muted);margin-top:3px}
+.msg.user .msg-meta{text-align:right}
+.msg-name{font-size:10.5px;font-weight:700;color:var(--muted);margin-bottom:3px}
+.msg.ai .msg-name{color:var(--mid)}
+.msg.user .msg-name{color:var(--accent);text-align:right}
+.view-link{font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;margin-top:5px;display:inline-block}
+.view-link:hover{text-decoration:underline}
+/* Quick prompts */
+.qprompts{padding:8px 14px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);flex-shrink:0}
+.qp-lbl{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.qp-chips{display:flex;flex-wrap:wrap;gap:4px}
+.qp-chip{padding:3px 9px;background:#F3F4F6;border-radius:14px;font-size:11px;color:var(--text);cursor:pointer;border:1px solid var(--border)}
+.qp-chip:hover{background:var(--lavender);border-color:var(--accent);color:var(--mid)}
+/* Chat input */
+.chat-inp-area{padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0}
+.chat-inp-wrap{display:flex;gap:7px;align-items:flex-end}
+.chat-inp{flex:1;padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;font-size:12.5px;color:var(--text);resize:none;outline:none;font-family:inherit;max-height:80px}
+.chat-inp:focus{border-color:var(--accent)}
+.chat-send{background:linear-gradient(135deg,var(--mid),var(--accent));color:#fff;border:none;border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0}
+/* S6 share */
+.sh-center{display:flex;align-items:center;justify-content:center;min-height:600px}
+.sh-card{background:#fff;border-radius:15px;border:1px solid var(--border);padding:26px;width:490px;text-align:center;box-shadow:var(--shadow-md)}
+.sh-icon{width:58px;height:58px;background:linear-gradient(135deg,var(--mid),var(--accent));border-radius:17px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 13px;box-shadow:0 8px 20px rgba(99,102,241,.3)}
+.sh-t{font-size:18px;font-weight:700;color:var(--dark);margin-bottom:5px}
+.sh-s{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:18px}
+.eml-prev{background:#F9FAFB;border:1px solid var(--border);border-radius:9px;padding:13px;text-align:left;margin-bottom:16px}
+.ef{display:flex;gap:8px;margin-bottom:6px;font-size:12.5px}
+.ef:last-child{margin-bottom:0}
+.ek{font-weight:700;color:var(--dark);width:48px;flex-shrink:0}
+.ev{color:var(--muted)}
+.ev.bl{color:var(--accent);font-weight:500}
+.sd{height:1px;background:var(--border);margin:10px 0}
+.sh-acts{display:flex;flex-direction:column;gap:7px}
+.shabtn{width:100%;padding:11px;border-radius:8px;font-size:13.5px;font-weight:700;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.sha-p{background:linear-gradient(135deg,var(--mid),var(--accent));color:#fff;box-shadow:0 4px 12px rgba(99,102,241,.3)}
+.sha-g{background:#F9FAFB;color:var(--muted);border:1px solid var(--border);font-size:13px}
+.sh-sent{display:none;text-align:center}
+.sc-chk{font-size:42px;margin-bottom:9px}
+.sc-t{font-size:16px;font-weight:700;color:var(--success);margin-bottom:5px}
+.sc-s{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+.sc-m{background:#ECFDF5;border-radius:8px;padding:10px;font-size:12px;color:#065F46;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<div class="snav">
+  <button class="nb nb-pr" id="pb" onclick="goTo(cur-1)" disabled>← Prev</button>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+    <div class="sc" id="scc">Screen 1 of 6</div>
+    <div class="dots" id="sdots"></div>
+  </div>
+  <button class="nb nb-nx" id="nb" onclick="goTo(cur+1)">Next →</button>
+</div>
+
+<div class="browser">
+  <div class="bbar">
+    <div class="bdots"><div class="bd bd-r"></div><div class="bd bd-y"></div><div class="bd bd-g"></div></div>
+    <div class="burl" id="url">atlas.pepper.inc / cs-workspace</div>
+  </div>
+  <div class="bbody">
+
+  <!-- S1: HOME -->
+  <div class="screen active" id="sc1">
+    <div class="shell">
+      <div class="sb">
+        <div class="sb-logo"><div class="sb-icon">✳</div><div><div class="sb-name">Atlas</div></div></div>
+        <div class="sb-sec">Workspace</div>
+        <div class="sb-item act">🏠 &nbsp;CS Home</div>
+        <div class="sb-item">📊 &nbsp;Reports</div>
+        <div class="sb-item">👥 &nbsp;Clients</div>
+        <div class="sb-div"></div>
+        <div class="sb-sec">Analytics</div>
+        <div class="sb-item">🔍 &nbsp;GEO Visibility</div>
+        <div class="sb-item">📈 &nbsp;SEO Overview</div>
+        <div class="sb-item">🤖 &nbsp;AI/LLM Traffic</div>
+        <div class="sb-bot"><div class="sb-user"><div class="sb-av">EG</div><div><div class="sb-un">Eman G.</div><div class="sb-ur">CS Manager</div></div></div></div>
+      </div>
+      <div class="main">
+        <div class="mhdr"><div><div class="mhdr-t">CS Workspace</div><div class="mhdr-s">Manage client reports and performance</div></div></div>
+        <div class="mbody">
+          <div class="srow">
+            <div class="scard"><div class="sl">Active Clients</div><div class="sv">12</div><div class="ss">3 reports due</div></div>
+            <div class="scard"><div class="sl">Reports This Month</div><div class="sv">8</div><div class="ss">4 pending</div></div>
+            <div class="scard"><div class="sl">Avg Gen Time</div><div class="sv">&lt;10 min</div><div class="ss">↓ from 4+ hrs</div></div>
+            <div class="scard"><div class="sl">Time Saved</div><div class="sv">68 hrs</div><div class="ss">this month</div></div>
+          </div>
+          <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:10px">Client Accounts — Select a client to generate their MBR</div>
+          <div class="cgrid">
+            <div class="cc hl" onclick="goTo(1)"><div class="ccn">Vantor Group</div><div class="ccd">vantor.com</div><div class="ccm"><span class="ccl">Last report: May 2026</span><span class="ccs due">MBR Due</span></div></div>
+            <div class="cc"><div class="ccn">Meridian Corp</div><div class="ccd">meridian.com</div><div class="ccm"><span class="ccl">Last report: Jun 2026</span><span class="ccs sent">Sent</span></div></div>
+            <div class="cc"><div class="ccn">Crestline Industries</div><div class="ccd">crestline.com</div><div class="ccm"><span class="ccl">Last report: Jun 2026</span><span class="ccs draft">Draft</span></div></div>
+            <div class="cc"><div class="ccn">Halcyon Energy</div><div class="ccd">halcyon.com</div><div class="ccm"><span class="ccl">Last report: May 2026</span><span class="ccs sent">Sent</span></div></div>
+            <div class="cc"><div class="ccn">Orion Technologies</div><div class="ccd">orion.com</div><div class="ccm"><span class="ccl">Last report: Jun 2026</span><span class="ccs sent">Sent</span></div></div>
+            <div class="cc" style="border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center"><div style="text-align:center;color:var(--muted)"><div style="font-size:20px;margin-bottom:3px">+</div><div style="font-size:12px">Add Client</div></div></div>
+          </div>
+          <div class="gcta">
+            <div class="gcta"><div><h3>⚡ Generate MBR for Vantor Group</h3><p>Client selected · Atlas Brief pulls all 5 data sources automatically</p></div>
+            <div class="gcta-r">
+              <div class="gstat"><div class="gstat-v">&lt;10 min</div><div class="gstat-l">report generation</div></div>
+              <button class="gcta-btn" onclick="goTo(1)">Generate MBR →</button>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2: CONFIG -->
+  <div class="screen" id="sc2">
+    <div class="shell">
+      <div class="sb">
+        <div class="sb-logo"><div class="sb-icon">✳</div><div><div class="sb-name">Atlas</div></div></div>
+        <div class="sb-sec">Workspace</div>
+        <div class="sb-item">🏠 &nbsp;CS Home</div>
+        <div class="sb-item act">📊 &nbsp;Reports</div>
+        <div class="sb-item">👥 &nbsp;Clients</div>
+        <div class="sb-div"></div>
+        <div class="sb-sec">Analytics</div>
+        <div class="sb-item">🔍 &nbsp;GEO Visibility</div>
+        <div class="sb-item">📈 &nbsp;SEO Overview</div>
+        <div class="sb-item">🤖 &nbsp;AI/LLM Traffic</div>
+        <div class="sb-bot"><div class="sb-user"><div class="sb-av">EG</div><div><div class="sb-un">Eman G.</div><div class="sb-ur">CS Manager</div></div></div></div>
+      </div>
+      <div class="main">
+        <div class="mhdr">
+          <div><div class="mhdr-t">Generate Client MBR</div><div class="mhdr-s">Vantor Group · Configure parameters</div></div>
+          <div style="display:flex;gap:8px"><button class="btn-g" onclick="goTo(0)">← Back</button><button class="btn-p" onclick="goTo(2)">⚡ Generate Report</button></div>
+        </div>
+        <div class="mbody">
+          <div class="cfg-layout">
+            <div>
+              <div class="card">
+                <div style="margin-bottom:14px">
+                  <div class="ft">Client & Period</div>
+                  <div class="fld"><label class="fl">Client</label><select class="fi"><option>Vantor Group</option></select></div>
+                  <div class="fld tc">
+                    <div><label class="fl">Reporting Month</label><input type="text" class="fi" value="June 2026" readonly></div>
+                    <div><label class="fl">Previous Month</label><input type="text" class="fi" value="July 2026" readonly></div>
+                  </div>
+                </div>
+                <div style="margin-bottom:14px">
+                  <div class="ft">Report Modules</div>
+                  <div class="trow"><div class="tl"><label>Site Migration Analysis</label><span>Include pre/post migration comparison</span></div><label class="tog"><input type="checkbox"><span class="tsl"></span></label></div>
+                </div>
+                <div style="margin-bottom:14px">
+                  <div class="ft">SEO Activities Completed <span style="font-size:10px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">— click to edit, + to add</span></div>
+                  <table class="atbl">
+                    <thead><tr><th style="width:68%">Activity</th><th style="width:22%">Status</th><th style="width:10%"></th></tr></thead>
+                    <tbody id="done-body">
+                      <tr><td><input class="atbl-inp" value="Monthly Performance Report — May'26"></td><td><select class="atbl-sel"><option selected>Shared</option><option>In Progress</option><option>Pending</option></select></td><td><button class="atbl-rm" onclick="this.closest('tr').remove()">×</button></td></tr>
+                      <tr><td><input class="atbl-inp" value="Newsroom Section Audit & Schema Fixes"></td><td><select class="atbl-sel"><option selected>Shared</option><option>In Progress</option><option>Pending</option></select></td><td><button class="atbl-rm" onclick="this.closest('tr').remove()">×</button></td></tr>
+                      <tr><td><input class="atbl-inp" value="Blog Recommendations for Vantor"></td><td><select class="atbl-sel"><option selected>Shared</option><option>In Progress</option><option>Pending</option></select></td><td><button class="atbl-rm" onclick="this.closest('tr').remove()">×</button></td></tr>
+                      <tr><td><input class="atbl-inp" value="Website Health Tracker — May Update"></td><td><select class="atbl-sel"><option selected>Shared</option><option>In Progress</option><option>Pending</option></select></td><td><button class="atbl-rm" onclick="this.closest('tr').remove()">×</button></td></tr>
+                      <tr><td><input class="atbl-inp" value="Vantor Energy Migration"></td><td><select class="atbl-sel"><option>Shared</option><option selected>In Progress</option><option>Pending</option></select></td><td><button class="atbl-rm" onclick="this.closest('tr').remove()">×</button></td></tr>
+                    </tbody>
+                  </table>
+                  <button class="add-row" onclick="addDone()">+ Add Activity</button>
+                </div>
+                <div>
+                  <div class="ft">Planned Activities — Next Month <span style="font-size:10px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">— click to edit, + to add</span></div>
+                  <table class="atbl">
+                    <thead><tr><th style="width:52%">Activity</th><th style="width:22%">TAT</th><th style="width:18%">Project</th><th style="width:8%"></th></tr></thead>
+                    <tbody id="plan-body">
+                      <tr><td><input class="atbl-inp" value="Monthly Performance Report — Jul'26"></td><td><input class="atbl-inp" value="06/07/2026" style="width:90px"></td><td><input class="atbl-inp" value="Vantor Group"></td><td><button class="atbl-rm" onclick="this.closest('tr').remove()">×</button></td></tr>
+                      <tr><td><input class="atbl-inp" value="Competitor Analysis — Vantor Energy"></td><td><input class="atbl-inp" value="06/07/2026" style="width:90px"></td><td><input class="atbl-inp" value="Vantor Energy"></td><td><button class="atbl-rm" onclick="this.closest('tr').remove()">×</button></td></tr>
+                      <tr><td><input class="atbl-inp" value="Technical Health Tracker"></td><td><input class="atbl-inp" value="13/07/2026" style="width:90px"></td><td><input class="atbl-inp" value="Vantor Group"></td><td><button class="atbl-rm" onclick="this.closest('tr').remove()">×</button></td></tr>
+                      <tr><td><input class="atbl-inp" value="Page Speed Report"></td><td><input class="atbl-inp" value="22/07/2026" style="width:90px"></td><td><input class="atbl-inp" value="Vantor Group"></td><td><button class="atbl-rm" onclick="this.closest('tr').remove()">×</button></td></tr>
+                    </tbody>
+                  </table>
+                  <button class="add-row" onclick="addPlan()">+ Add Activity</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="card" style="margin-bottom:11px">
+                <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:7px">Client Profile</div>
+                <div style="font-size:11.5px;color:var(--muted);margin-bottom:7px;line-height:1.5">Loaded from Atlas. Competitors, branded keywords, and sub-projects pre-configured.</div>
+                <div class="dsit"><span class="dsd"></span>vantor.com (primary)</div>
+                <div class="dsit"><span class="dsd"></span>vantorenergy.com</div>
+                <div class="dsit"><span class="dsd"></span>vantorinfra.com</div>
+              </div>
+              <div class="card" style="margin-bottom:11px">
+                <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:7px">Data Sources</div>
+                <div class="dsit"><span class="dsd"></span>Google Search Console</div>
+                <div class="dsit"><span class="dsd"></span>Google Analytics 4</div>
+                <div class="dsit"><span class="dsd"></span>Semrush</div>
+                <div class="dsit"><span class="dsd"></span>Semrush AI</div>
+                <div class="dsit"><span class="dsd"></span>GEO Visibility</div>
+              </div>
+              <div class="card" style="background:linear-gradient(135deg,#1E1B4B,#4F46E5);border:none">
+                <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.55);margin-bottom:4px">Est. generation time</div>
+                <div style="font-size:26px;font-weight:700;color:#fff">&lt;10 min</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:2px">Down from 4+ hours manually</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S3: EXEC -->
+  <div class="screen" id="sc3">
+    <div class="exec-sp">
+      <div class="elp">
+        <div class="elp-h">
+          <div class="elp-b2"><span class="elp-bd"></span>Atlas Brief Agent Pipeline</div>
+          <div class="elp-t">Generating MBR...</div>
+          <div class="elp-s">Vantor Group · June 2026</div>
+          <div class="elp-tm">00:18</div>
+        </div>
+        <div class="elp-body">
+          <div class="agh or"><span class="agd"></span>Orchestrator</div>
+          <div class="stp"><div class="si d">✓</div><div class="st2 dn">Initializing agent pipeline</div></div>
+          <div class="stp"><div class="si d">✓</div><div class="st2 dn">Loading client profile from Atlas</div></div>
+          <div class="agh da"><span class="agd"></span>Data Intelligence Agent</div>
+          <div class="stp"><div class="si d">✓</div><div class="st2 dn">Pulling Google Search Console data</div></div>
+          <div class="stp"><div class="si d">✓</div><div class="st2 dn">Pulling Google Analytics 4 data</div></div>
+          <div class="stp"><div class="si d">✓</div><div class="st2 dn">Pulling Semrush competitive data</div></div>
+          <div class="stp"><div class="si d">✓</div><div class="st2 dn">Pulling Semrush AI + GEO data</div></div>
+          <div class="stp"><div class="si d">✓</div><div class="st2 dn">Computing deltas & Quick Wins</div></div>
+          <div class="agh na"><span class="agd"></span>Narrative Agent</div>
+          <div class="stp"><div class="si d">✓</div><div class="st2 dn">Narrative: Quick Wins</div></div>
+          <div class="stp"><div class="si d">✓</div><div class="st2 dn">Narrative: Organic Search</div></div>
+          <div class="stp"><div class="si r">●</div><div class="st2 ac">Narrative: Competitor Analysis</div></div>
+          <div class="stp"><div class="si p">○</div><div class="st2">Narrative: Website Performance</div></div>
+          <div class="stp"><div class="si p">○</div><div class="st2">Narrative: AI & LLM Visibility</div></div>
+          <div class="stp"><div class="si p">○</div><div class="st2">Narrative: SEO Activities</div></div>
+          <div class="stp"><div class="si p">○</div><div class="st2">Narrative: Executive Summary</div></div>
+          <div class="agh or"><span class="agd"></span>Orchestrator</div>
+          <div class="stp"><div class="si p">○</div><div class="st2">Rendering final report</div></div>
+        </div>
+        <div class="elp-f"><div class="eprog"><div class="epf"></div></div></div>
+      </div>
+      <div class="erp">
+        <div class="rmh"><div><div class="rmb">VANTOR GROUP <span>|</span> pepper</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Monthly Business Review — June 2026</div></div><div class="gpill">⏳ Generating...</div></div>
+        <div class="msec"><div class="mst">Executive Performance Summary</div><div class="sk skl"></div><div class="sk skl w8"></div><div class="sk skl w6"></div></div>
+        <div class="msec"><div class="mst">Quick Wins ✓</div><div class="mk4"><div class="mk"><div class="mkl">Clicks</div><div class="mkv">+19.8%</div><div class="mkd">MoM ↑</div></div><div class="mk"><div class="mkl">Sessions</div><div class="mkv">+21.7%</div><div class="mkd">MoM ↑</div></div><div class="mk"><div class="mkl">Visibility</div><div class="mkv">4.78%</div><div class="mkd">Leads</div></div><div class="mk"><div class="mkl">AI Sess.</div><div class="mkv">693</div><div class="mkd">+14.5%</div></div></div><div class="mib">Clicks grew 19.84% MoM to 58,940. Seven keywords moved into top-10 positions including rank #1 for green hydrogen steel plan.</div></div>
+        <div class="sdin">Google Search Console — Monthly Organic Performance</div>
+        <div class="msec"><div class="mst">Organic Search Performance ✓</div><table class="mtbl"><thead><tr><th>Metric</th><th>Jun 2026</th><th>Prev</th><th>Change</th></tr></thead><tbody><tr><td>Clicks</td><td>58,940</td><td>49,180</td><td style="color:var(--success);font-weight:700">+19.85%</td></tr><tr><td>CTR</td><td>4.21%</td><td>3.42%</td><td style="color:var(--success);font-weight:700">+20.12%</td></tr></tbody></table></div>
+        <div class="msec"><div class="mst">Competitor Analysis <span style="font-size:10px;color:var(--accent);background:var(--lavender);padding:2px 7px;border-radius:10px;font-weight:600;margin-left:4px">Generating...</span></div><div class="sk skb" style="height:40px"></div></div>
+        <div class="msec"><div class="mst">Website Performance</div><div class="sk skb" style="height:40px"></div></div>
+        <div class="msec"><div class="mst">AI & LLM Visibility</div><div class="sk skb" style="height:40px"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S4: PREVIEW -->
+  <div class="screen" id="sc4" style="position:relative">
+    <div class="shell">
+      <div class="sb">
+        <div class="sb-logo"><div class="sb-icon">✳</div><div><div class="sb-name">Atlas</div></div></div>
+        <div class="sb-sec">Workspace</div>
+        <div class="sb-item">🏠 &nbsp;CS Home</div>
+        <div class="sb-item act">📊 &nbsp;Reports</div>
+        <div class="sb-item">👥 &nbsp;Clients</div>
+        <div class="sb-div"></div>
+        <div class="sb-sec">Analytics</div>
+        <div class="sb-item">🔍 &nbsp;GEO Visibility</div>
+        <div class="sb-item">📈 &nbsp;SEO Overview</div>
+        <div class="sb-item">🤖 &nbsp;AI/LLM Traffic</div>
+        <div class="sb-bot"><div class="sb-user"><div class="sb-av">EG</div><div><div class="sb-un">Eman G.</div><div class="sb-ur">CS Manager</div></div></div></div>
+      </div>
+      <div class="main" style="position:relative">
+        <div class="dloverlay" id="dlov">
+          <div class="dlcard">
+            <div class="dlicon">📄</div>
+            <div class="dltitle">Preparing PDF Download</div>
+            <div class="dlsub">Compiling June 2026 MBR for Vantor Group<br>into a client-ready PDF document.</div>
+            <div class="dlbar"><div class="dlf"></div></div>
+            <div class="dlst" id="dlst">Formatting report layout...</div>
+            <button onclick="closeDl()" style="padding:7px 18px;background:var(--lavender);color:var(--mid);border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px">Done</button>
+          </div>
+        </div>
+        <div class="mhdr">
+          <div><div class="mhdr-t">Report Preview — Vantor Group</div><div class="mhdr-s">June 2026 · Generated in 8 min 42 sec</div></div>
+
+        </div>
+        <div class="mbody">
+          <div class="prev-layout">
+            <div>
+              <div class="rfhdr">
+                <div><div class="rfb">VANTOR GROUP <span>|</span> pepper</div><div class="rfp">Monthly Business Review — June 2026</div></div>
+                <div class="rfm"><div>Prepared by <strong>Pepper CS Team</strong></div><div class="rpill">✓ Generated by Atlas Brief</div></div>
+              </div>
+              <div class="fsec">
+                <div class="fst">Executive Performance Summary</div>
+                <div class="fib"><ul>
+                  <li>Organic clicks grew 19.84% MoM to 58,940 with CTR improving from 3.42% to 4.21% and position strengthening from 10.8 to 9.5 — reflecting improved content targeting and structural realignment.</li>
+                  <li>Vantor leads all tracked competitors at 4.78% visibility (+1.92 MoM), with 7 non-branded keywords entering top-10 for the first time including #1 for green hydrogen steel plan.</li>
+                  <li>AI-referred sessions grew 14.5% MoM to 693, ChatGPT and Gemini jointly driving 71.6% of all LLM traffic.</li>
+                </ul></div>
+              </div>
+              <div class="fsec">
+                <div class="fst">Quick Wins — June 2026</div>
+                <div class="kpi4"><div class="kb"><div class="kbl">Clicks Growth</div><div class="kbv">+19.8%</div><div class="kbd">MoM ↑</div></div><div class="kb"><div class="kbl">Sessions Growth</div><div class="kbv">+21.7%</div><div class="kbd">MoM ↑</div></div><div class="kb"><div class="kbl">Visibility Score</div><div class="kbv">4.78%</div><div class="kbd">Leads all</div></div><div class="kb"><div class="kbl">AI Sessions</div><div class="kbv">693</div><div class="kbd">+14.5% ↑</div></div></div>
+              </div>
+              <div class="sdiv">Google Search Console — Monthly Organic Performance</div>
+              <div class="fsec">
+                <div class="fst">Google Search Performance Overview</div>
+                <div class="kpi4"><div class="kb"><div class="kbl">Total Clicks</div><div class="kbv">58,940</div><div class="kbd">+19.85% MoM</div></div><div class="kb"><div class="kbl">Impressions</div><div class="kbv">14.03M</div><div class="kbd" style="color:var(--err)">-2.41% MoM</div></div><div class="kb"><div class="kbl">Avg CTR</div><div class="kbv">4.21%</div><div class="kbd">from 3.42% ↑</div></div><div class="kb"><div class="kbl">Avg Position</div><div class="kbv">9.5</div><div class="kbd">from 10.8 ↑</div></div></div>
+                <div class="fib"><ul><li>Total clicks grew 19.84% MoM to 58,940. Impression decline reflects planned post-migration traffic redistribution to sub-domain properties — a structurally positive shift.</li></ul></div>
+              </div>
+            </div>
+            <div>
+              <div class="tcard">
+                <div class="ttl">All Sections</div>
+                <div class="titem"><span class="tdot"></span>Executive Summary</div>
+                <div class="titem"><span class="tdot"></span>Quick Wins</div>
+                <div class="titem"><span class="tdot"></span>Organic Performance</div>
+                <div class="titem"><span class="tdot"></span>Competitor Analysis</div>
+                <div class="titem"><span class="tdot"></span>Website Performance</div>
+                <div class="titem"><span class="tdot"></span>AI & LLM Visibility</div>
+                <div class="titem"><span class="tdot"></span>SEO Activities</div>
+              </div>
+              <div class="acard">
+                <h4>Actions</h4>
+                <button class="abtn ab-p" onclick="goTo(5)">Send to Client</button>
+                <button class="abtn ab-s" onclick="goTo(4)">Edit Sections</button>
+                <button class="abtn ab-g" onclick="showDl()">⬇ Download PDF</button>
+              </div>
+              <div style="background:#ECFDF5;border-radius:9px;border:1px solid #6EE7B7;padding:12px;margin-top:9px">
+                <div style="font-size:11px;font-weight:700;color:#065F46;margin-bottom:2px">⚡ Time Saved</div>
+                <div style="font-size:20px;font-weight:700;color:#065F46">3h 51min</div>
+                <div style="font-size:11px;color:#065F46;margin-top:2px">vs manual process</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S5: EDIT WITH CHAT -->
+  <div class="screen" id="sc5">
+    <div class="edit-shell">
+      <!-- Sidebar -->
+      <div class="edit-sb">
+        <div class="sb-logo"><div class="sb-icon">✳</div><div><div class="sb-name">Atlas</div></div></div>
+        <div class="sb-sec">Workspace</div>
+        <div class="sb-item">🏠 &nbsp;CS Home</div>
+        <div class="sb-item act">📊 &nbsp;Reports</div>
+        <div class="sb-item">👥 &nbsp;Clients</div>
+        <div class="sb-div"></div>
+        <div class="sb-sec">Analytics</div>
+        <div class="sb-item">🔍 &nbsp;GEO Visibility</div>
+        <div class="sb-item">📈 &nbsp;SEO Overview</div>
+        <div class="sb-item">🤖 &nbsp;AI/LLM Traffic</div>
+        <div class="sb-bot"><div class="sb-user"><div class="sb-av">EG</div><div><div class="sb-un">Eman G.</div><div class="sb-ur">CS Manager</div></div></div></div>
+      </div>
+      <!-- Main -->
+      <div class="edit-main-area">
+        <div class="edit-mhdr">
+          <div><div class="mhdr-t">Edit Report Sections</div><div class="mhdr-s">Vantor Group · June 2026 · Chat with Atlas Brief to edit any section</div></div>
+          <div style="display:flex;gap:7px"><button class="btn-g" onclick="goTo(3)">← Preview</button><button class="btn-p" onclick="goTo(3)">Save Changes</button></div>
+        </div>
+        <div class="edit-content">
+          <!-- Report (65%) -->
+          <div class="edit-rpt">
+            <div class="edit-rhdr">
+              <div><div class="edit-brand">VANTOR GROUP <span>|</span> pepper</div><div class="edit-period">Monthly Business Review — June 2026</div></div>
+              <div class="edit-mode-pill">✏️ Edit Mode — hover any section</div>
+            </div>
+            <!-- Exec -->
+            <div class="esw" onclick="selectSec(this,'Executive Summary')" id="es-exec">
+              <div class="esi2"><div class="esh2"><div class="esn2">Executive Performance Summary</div><button class="esb2">✏️ Edit</button></div>
+              <div class="esprev">Organic clicks grew 19.84% MoM to 58,940 with CTR improving from 3.42% to 4.21%...</div>
+              <div class="esprev">Vantor leads all tracked competitors at 4.78% visibility (+1.92 MoM)...</div>
+              <div class="esprev">AI-referred sessions grew 14.5% MoM to 693, ChatGPT and Gemini driving 71.6%...</div>
+              </div>
+            </div>
+            <!-- QW -->
+            <div class="esw" onclick="selectSec(this,'Quick Wins')" id="es-qw">
+              <div class="esi2"><div class="esh2"><div class="esn2">Quick Wins — June 2026</div><button class="esb2">✏️ Edit</button></div>
+              <div class="esk4"><div class="emk"><div class="emkv">+19.8%</div><div class="emkl">Clicks</div></div><div class="emk"><div class="emkv">+21.7%</div><div class="emkl">Sessions</div></div><div class="emk"><div class="emkv">4.78%</div><div class="emkl">Visibility</div></div><div class="emk"><div class="emkv">693</div><div class="emkl">AI Sess.</div></div></div>
+              </div>
+            </div>
+            <div class="esb3">Google Search Console — Monthly Organic Performance</div>
+            <!-- Organic -->
+            <div class="esw" onclick="selectSec(this,'Organic Search Performance')" id="es-org">
+              <div class="esi2"><div class="esh2"><div class="esn2">Organic Search Performance</div><button class="esb2">✏️ Edit</button></div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:5px"><div style="background:var(--lavender);border-radius:4px;padding:4px 6px;text-align:center"><div style="font-weight:700;color:var(--dark);font-size:12px">58,940</div><div style="color:var(--muted);font-size:9px">Clicks</div></div><div style="background:var(--lavender);border-radius:4px;padding:4px 6px;text-align:center"><div style="font-weight:700;color:var(--dark);font-size:12px">14.03M</div><div style="color:var(--muted);font-size:9px">Impressions</div></div><div style="background:var(--lavender);border-radius:4px;padding:4px 6px;text-align:center"><div style="font-weight:700;color:var(--dark);font-size:12px">4.21%</div><div style="color:var(--muted);font-size:9px">CTR</div></div><div style="background:var(--lavender);border-radius:4px;padding:4px 6px;text-align:center"><div style="font-weight:700;color:var(--dark);font-size:12px">9.5</div><div style="color:var(--muted);font-size:9px">Position</div></div></div>
+              <div class="esprev">Total clicks grew 19.84% MoM. Impression decline reflects planned post-migration redistribution...</div>
+              </div>
+            </div>
+            <!-- Competitor - selected + updated -->
+            <div class="esw updated flash" onclick="selectSec(this,'Competitor Analysis')" id="es-comp">
+              <div class="esi2"><div class="esh2"><div class="esn2">Competitor Analysis</div><button class="esb2" style="background:#ECFDF5;color:var(--success);opacity:1">✓ Updated</button></div>
+              <table class="etbl"><thead><tr><th>Domain</th><th>Visibility</th><th>MoM</th></tr></thead><tbody><tr><td><strong>vantor.com 🏆</strong></td><td>4.78%</td><td style="color:var(--success)">+1.92</td></tr><tr><td>crestline.com</td><td>1.92%</td><td style="color:var(--success)">+1.61</td></tr><tr><td>meridian.com</td><td>1.71%</td><td style="color:var(--success)">+0.74</td></tr></tbody></table>
+              <div class="eib">Backlink gap is the #1 priority action for next month — Vantor holds 2,545 referring domains (DA 44) vs Orion's 11,420 (DA 60). Vantor Energy and Infra will require separate competitor tracking going forward.</div>
+              </div>
+            </div>
+            <div class="esb3">Google Analytics — Organic Performance</div>
+            <!-- Website -->
+            <div class="esw" onclick="selectSec(this,'Website Performance')" id="es-web">
+              <div class="esi2"><div class="esh2"><div class="esn2">Website Performance</div><button class="esb2">✏️ Edit</button></div>
+              <div class="esprev">Sessions grew 21.7% MoM to 70,500. /vantor-motors-india/ showed +511% MoM growth...</div>
+              </div>
+            </div>
+            <div class="esb3">AI & LLM Visibility</div>
+            <!-- AI -->
+            <div class="esw" onclick="selectSec(this,'AI & LLM Visibility')" id="es-ai">
+              <div class="esi2"><div class="esh2"><div class="esn2">AI & LLM Visibility</div><button class="esb2">✏️ Edit</button></div>
+              <div class="esprev">LLM sessions grew +14.5% MoM to 693. ChatGPT drives 577 sessions (83.3% of total AI traffic)...</div>
+              </div>
+            </div>
+            <!-- Activities -->
+            <div class="esw" onclick="selectSec(this,'SEO Activities')" id="es-act">
+              <div class="esi2"><div class="esh2"><div class="esn2">SEO Activities</div><button class="esb2">✏️ Edit</button></div>
+              <div class="esprev">5 deliverables completed this month including performance reporting, newsroom audit, schema fixes...</div>
+              </div>
+            </div>
+          </div>
+          <!-- Chat panel (35%) -->
+          <div class="chat-panel">
+            <!-- Onboarding hint -->
+            <div class="ob-hint" id="ob-hint">
+              <div class="ob-icon">✨</div>
+              <div>
+                <div class="ob-t">Edit any section using natural language</div>
+                <div class="ob-s">Not happy with something? Just describe the change. Atlas Brief will identify the right section and update it automatically — no clicking required.</div>
+                <span class="ob-dis" onclick="document.getElementById('ob-hint').style.display='none'">Got it, dismiss →</span>
+              </div>
+            </div>
+            <!-- Chat header -->
+            <div class="chat-hdr">
+              <div class="chat-hdr-icon">🤖</div>
+              <div><div class="chat-hdr-t">Atlas Brief</div><div class="chat-hdr-s">● Ready to edit</div></div>
+            </div>
+            <!-- Messages -->
+            <div class="chat-msgs" id="chat-msgs">
+              <div class="msg ai">
+                <div class="msg-name">Atlas Brief</div>
+                <div class="msg-bubble">I've reviewed the June 2026 MBR for Vantor Group. All 7 sections are ready for editing.<br><br>Just describe any change you'd like — I'll find the right section and update it automatically. You can also hover and click any section on the left to edit it directly.</div>
+                <div class="msg-meta">Just now</div>
+              </div>
+              <div class="msg user">
+                <div class="msg-name">You</div>
+                <div class="msg-bubble">Make the competitor analysis lead with the backlink gap as the #1 priority action for next month. Also flag that Vantor Energy and Infra need separate competitor tracking going forward.</div>
+                <div class="msg-meta">1 min ago</div>
+              </div>
+              <div class="msg ai">
+                <div class="msg-name">Atlas Brief</div>
+                <div class="msg-bubble">Done ✓ — I've updated <strong>Competitor Analysis</strong>.<br><br>The backlink gap (Vantor: 2,545 referring domains at DA 44 vs Orion: 11,420 at DA 60) is now framed as the primary growth opportunity for next month, with a clear action recommendation. I've also added a note about separate tracking for Vantor Energy and Infra.</div>
+                <div class="view-link" onclick="highlightSec('es-comp')">↑ View updated section</div>
+                <div class="msg-meta">Just now</div>
+              </div>
+            </div>
+            <!-- Quick prompts -->
+            <div class="qprompts">
+              <div class="qp-lbl">Try asking</div>
+              <div class="qp-chips">
+                <span class="qp-chip" onclick="addUserMsg(this)">Make exec summary shorter</span>
+                <span class="qp-chip" onclick="addUserMsg(this)">Add action items to organic</span>
+                <span class="qp-chip" onclick="addUserMsg(this)">Shorten Quick Wins to 2 bullets</span>
+                <span class="qp-chip" onclick="addUserMsg(this)">Make AI section more specific</span>
+              </div>
+            </div>
+            <!-- Input -->
+            <div class="chat-inp-area">
+              <div class="chat-inp-wrap">
+                <textarea class="chat-inp" id="chat-inp" rows="2" placeholder="Describe the change you want to make..."></textarea>
+                <button class="chat-send" onclick="sendChat()">↑</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S6: SHARE -->
+  <div class="screen" id="sc6">
+    <div class="shell">
+      <div class="sb">
+        <div class="sb-logo"><div class="sb-icon">✳</div><div><div class="sb-name">Atlas</div></div></div>
+        <div class="sb-sec">Workspace</div>
+        <div class="sb-item">🏠 &nbsp;CS Home</div>
+        <div class="sb-item act">📊 &nbsp;Reports</div>
+        <div class="sb-item">👥 &nbsp;Clients</div>
+        <div class="sb-div"></div>
+        <div class="sb-sec">Analytics</div>
+        <div class="sb-item">🔍 &nbsp;GEO Visibility</div>
+        <div class="sb-item">📈 &nbsp;SEO Overview</div>
+        <div class="sb-item">🤖 &nbsp;AI/LLM Traffic</div>
+        <div class="sb-bot"><div class="sb-user"><div class="sb-av">EG</div><div><div class="sb-un">Eman G.</div><div class="sb-ur">CS Manager</div></div></div></div>
+      </div>
+      <div class="main">
+        <div class="mhdr"><div><div class="mhdr-t">Send Report to Client</div><div class="mhdr-s">Vantor Group · June 2026 MBR</div></div><button class="btn-g" onclick="goTo(3)">← Back to Preview</button></div>
+        <div class="mbody">
+          <div class="sh-center">
+            <div class="sh-card">
+              <div id="sh-form">
+                <div class="sh-icon">📨</div>
+                <div class="sh-t">Ready to Send</div>
+                <div class="sh-s">The June 2026 MBR for Vantor Group is ready. Review the email below and send.</div>
+                <div class="eml-prev">
+                  <div class="ef"><span class="ek">To:</span><span class="ev bl">marketing@vantor.com</span></div>
+                  <div class="ef"><span class="ek">From:</span><span class="ev">eman@peppercontent.io</span></div>
+                  <div class="ef"><span class="ek">Subject:</span><span class="ev">Vantor Group — Monthly Business Review | June 2026</span></div>
+                  <div class="sd"></div>
+                  <div style="font-size:12px;color:var(--muted);line-height:1.6">Hi team,<br><br>Please find your June 2026 Monthly Business Review. Key highlights: clicks up 19.84% MoM, Vantor leads competitors at 4.78% visibility, and AI-referred sessions grew 14.5% MoM.<br><br>Best,<br>Eman | Pepper CS Team</div>
+                </div>
+                <div class="sh-acts">
+                  <button class="shabtn sha-p" onclick="sendRpt()">📨 Send Report</button>
+                  <button class="shabtn sha-g">Edit Email</button>
+                </div>
+              </div>
+              <div class="sh-sent" id="sh-sent">
+                <div class="sc-chk">✅</div>
+                <div class="sc-t">Report Sent Successfully</div>
+                <div class="sc-s">The June 2026 MBR has been sent to marketing@vantor.com and logged in the client's activity timeline in Atlas.</div>
+                <div class="sc-m">📊 Saved in Atlas · ⏱ Generated in 8 min 42 sec · 📨 Sent June 26, 2026</div>
+                <button class="shabtn sha-p" onclick="goTo(0)">← Back to CS Home</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>
+
+<script>
+let cur=0;
+const SCS=['sc1','sc2','sc3','sc4','sc5','sc6'];
+const LABELS=['CS Home','Step 1: Configure','Step 2: Execution','Step 3: Preview & Download','Step 4: Edit with AI','Step 5: Send to Client'];
+const URLS=['atlas.pepper.inc / cs-workspace','atlas.pepper.inc / reports / generate','atlas.pepper.inc / reports / generating','atlas.pepper.inc / reports / preview / vantor-jun-2026','atlas.pepper.inc / reports / edit / vantor-jun-2026','atlas.pepper.inc / reports / send / vantor-jun-2026'];
+
+function initDots(){const el=document.getElementById('sdots');el.innerHTML=SCS.map((_,i)=>`<div class="dt${i===0?' a':''}" id="d${i}"></div>`).join('')}
+
+function goTo(n){
+  if(n<0||n>=SCS.length)return;
+  document.getElementById(SCS[cur]).className='screen';
+  cur=n;
+  document.getElementById(SCS[cur]).className='screen active';
+  document.getElementById('scc').textContent=`Screen ${cur+1} of ${SCS.length} — ${LABELS[cur]}`;
+  document.getElementById('url').textContent=URLS[cur];
+  document.getElementById('pb').disabled=cur===0;
+  document.getElementById('nb').disabled=cur===SCS.length-1;
+  SCS.forEach((_,i)=>{document.getElementById('d'+i).className='dt'+(i===cur?' a':'')});
+}
+
+// Activities
+function addDone(){
+  const tr=document.createElement('tr');
+  tr.innerHTML='<td><input class="atbl-inp" placeholder="Activity name"></td><td><select class="atbl-sel"><option>Shared</option><option>In Progress</option><option>Pending</option></select></td><td><button class="atbl-rm" onclick="this.closest(\'tr\').remove()">×</button></td>';
+  document.getElementById('done-body').appendChild(tr);
+}
+function addPlan(){
+  const tr=document.createElement('tr');
+  tr.innerHTML='<td><input class="atbl-inp" placeholder="Activity name"></td><td><input class="atbl-inp" placeholder="DD/MM/YYYY" style="width:90px"></td><td><input class="atbl-inp" placeholder="Project"></td><td><button class="atbl-rm" onclick="this.closest(\'tr\').remove()">×</button></td>';
+  document.getElementById('plan-body').appendChild(tr);
+}
+
+// Download
+function showDl(){
+  document.getElementById('dlov').style.display='flex';
+  const msgs=['Formatting report layout...','Embedding data tables...','Compiling charts...','Finalising document...','✓ Download ready!'];
+  let i=0;const iv=setInterval(()=>{if(i<msgs.length)document.getElementById('dlst').textContent=msgs[i++];else clearInterval(iv);},550);
+}
+function closeDl(){document.getElementById('dlov').style.display='none'}
+
+// Edit section selection
+function selectSec(el,name){
+  document.querySelectorAll('.esw').forEach(s=>s.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('chat-inp').placeholder='Describe how to edit the '+name+' section...';
+  document.getElementById('chat-inp').focus();
+}
+
+function highlightSec(id){
+  const el=document.getElementById(id);
+  if(el){el.scrollIntoView({behavior:'smooth',block:'nearest'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),2100)}
+}
+
+// Chat
+function sendChat(){
+  const inp=document.getElementById('chat-inp');
+  const txt=inp.value.trim();
+  if(!txt)return;
+  addMsg(txt,'user');
+  inp.value='';
+  setTimeout(()=>{
+    addMsg("Got it — I've updated the relevant section based on your request. Check the report on the left to review the change.",'ai',true);
+  },1200);
+}
+
+function addUserMsg(el){
+  const txt=el.textContent;
+  addMsg(txt,'user');
+  setTimeout(()=>{addMsg("Done ✓ — I've updated the relevant section. Review the change on the left.",'ai',true);},1200);
+}
+
+function addMsg(txt,type,hasLink){
+  const msgs=document.getElementById('chat-msgs');
+  const div=document.createElement('div');
+  div.className='msg '+type;
+  div.innerHTML=`<div class="msg-name">${type==='ai'?'Atlas Brief':'You'}</div><div class="msg-bubble">${txt}</div>${hasLink?'<span class="view-link" onclick="highlightSec(\'es-comp\')">↑ View updated section</span>':''}<div class="msg-meta">Just now</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function sendRpt(){document.getElementById('sh-form').style.display='none';document.getElementById('sh-sent').style.display='block'}
+
+initDots();goTo(0);
+</script>
+</body>
+</html>
