@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas Brief — MBR Report Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --dark:#1E1B4B;--mid:#4F46E5;--accent:#6366F1;--light:#818CF8;
+  --success:#16A34A;--err:#DC2626;--warn:#D97706;
+  --bg:#F5F3FF;--white:#fff;--text:#111827;--muted:#6B7280;
+  --border:#E5E7EB;--card:#fff;
+  --shadow:0 1px 3px rgba(79,70,229,.08),0 1px 2px rgba(79,70,229,.06);
+  --shadow-md:0 4px 12px rgba(79,70,229,.1),0 2px 4px rgba(79,70,229,.06);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── S1 ── */
+#s1{min-height:100vh;display:flex;flex-direction:column}
+.app-hdr{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;height:58px;display:flex;align-items:center;justify-content:space-between}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-logo{width:30px;height:30px;background:linear-gradient(135deg,var(--mid),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:900}
+.hdr-name{font-size:15px;font-weight:700;color:var(--dark);letter-spacing:-.2px}
+.hdr-tag{font-size:11px;color:var(--muted);margin-top:1px}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.hdr-badge{background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--muted);font-weight:500}
+.hdr-dot{width:7px;height:7px;border-radius:50%;background:#16A34A}
+
+.form-wrap{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:36px 20px 60px}
+.form-card{background:var(--card);border-radius:16px;padding:36px;width:100%;max-width:580px;box-shadow:var(--shadow-md);border:1px solid var(--border)}
+.form-top{margin-bottom:26px}
+.form-top h2{font-size:21px;font-weight:700;color:var(--dark);letter-spacing:-.3px}
+.form-top p{font-size:13.5px;color:var(--muted);margin-top:5px}
+.divider{height:1px;background:var(--border);margin:20px 0}
+.lbl{font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;display:block}
+.inp{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border .2s}
+.inp:focus{border-color:var(--accent)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{margin-bottom:16px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:#FAFAFA;border:1.5px solid var(--border);border-radius:8px;margin-bottom:8px}
+.tl-left label{font-size:13.5px;font-weight:500;color:var(--text);display:block}
+.tl-left span{font-size:11.5px;color:var(--muted)}
+.tog{position:relative;width:42px;height:22px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-sl{position:absolute;inset:0;background:#CBD5E0;border-radius:22px;cursor:pointer;transition:.3s}
+.tog-sl:before{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.tog input:checked+.tog-sl{background:var(--accent)}
+.tog input:checked+.tog-sl:before{transform:translateX(20px)}
+.mig-field{margin-bottom:8px;display:none}
+.act-tbl{width:100%;border-collapse:collapse;margin-bottom:6px}
+.act-tbl th{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:5px 8px;background:#F9FAFB;border:1px solid var(--border);text-align:left}
+.act-tbl td{padding:4px 6px;border:1px solid var(--border)}
+.act-i{width:100%;border:none;outline:none;font-size:13px;color:var(--text);background:transparent;padding:2px 4px}
+.act-s{border:none;outline:none;font-size:12.5px;color:var(--text);background:transparent;width:100%;cursor:pointer}
+.act-rm{background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:15px;padding:2px 6px;border-radius:4px}
+.act-rm:hover{color:var(--err)}
+.add-btn{font-size:12.5px;color:var(--accent);border:1px dashed var(--light);background:transparent;padding:5px 12px;border-radius:6px;cursor:pointer;font-weight:500;margin-top:4px}
+.add-btn:hover{background:#EEF2FF}
+.btn-gen{width:100%;padding:13px;background:linear-gradient(135deg,var(--mid),var(--accent));color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(99,102,241,.4)}
+.btn-gen:hover{opacity:.92}
+.btn-gen:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── S2 SPLIT ── */
+#s2{display:none;height:100vh;overflow:hidden}
+.split{display:flex;height:100vh}
+.lp{width:320px;flex-shrink:0;background:var(--dark);display:flex;flex-direction:column;height:100vh}
+.lp-hdr{padding:20px 20px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.lp-badge{font-size:9.5px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.lp-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--light)}
+.lp-title{font-size:15px;font-weight:700;color:#fff}
+.lp-sub{font-size:12px;color:rgba(255,255,255,.45);margin-top:2px}
+.lp-timer{font-size:13px;font-weight:600;color:rgba(255,255,255,.6);margin-top:5px;font-variant-numeric:tabular-nums}
+.lp-body{flex:1;overflow-y:auto;padding:12px 16px}
+.lp-foot{padding:14px 16px;border-top:1px solid rgba(255,255,255,.08)}
+.prog-track{height:3px;background:rgba(255,255,255,.08);border-radius:3px;margin-bottom:14px;overflow:hidden}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--light));border-radius:3px;width:0%;transition:width .4s ease}
+.ag-hdr{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:10px 6px 4px;display:flex;align-items:center;gap:6px}
+.ag-hdr.or{color:#93C5FD}.ag-hdr.da{color:#86EFAC}.ag-hdr.na{color:#C4B5FD}
+.ag-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.step{display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:6px;margin-bottom:1px}
+.si{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0;transition:all .3s}
+.si.p{background:rgba(255,255,255,.07);color:rgba(255,255,255,.25)}
+.si.r{background:rgba(99,102,241,.3);color:#C4B5FD;animation:pu 1s infinite}
+.si.d{background:rgba(22,163,74,.2);color:#86EFAC}
+.si.e{background:rgba(220,38,38,.2);color:#FCA5A5}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.35}}
+.st{font-size:11.5px;color:rgba(255,255,255,.55);line-height:1.3}
+.st.ac{color:#fff;font-weight:500}
+.st.dn{color:rgba(255,255,255,.35)}
+.done-card{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);border-radius:10px;padding:14px;text-align:center;display:none}
+.done-card p{color:#C4B5FD;font-size:13px;font-weight:600;margin-bottom:4px}
+.done-card small{color:rgba(255,255,255,.4);font-size:11px}
+
+/* ── RIGHT PANEL ── */
+.rp{flex:1;overflow-y:auto;background:#fff}
+.rp-in{max-width:840px;margin:0 auto;padding:40px 36px 80px}
+.rpt-hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:20px;border-bottom:2px solid var(--dark);margin-bottom:32px}
+.rpt-brand{font-size:22px;font-weight:700;color:var(--dark);letter-spacing:-.3px}
+.rpt-brand span{color:var(--accent);margin:0 5px}
+.rpt-period{font-size:13px;color:var(--muted);margin-top:4px}
+.rpt-meta{text-align:right;font-size:12px;color:var(--muted);line-height:1.8}
+.gen-badge{display:inline-flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--muted);margin-top:5px}
+.gen-badge.rdy{background:#EEF2FF;border-color:#C7D2FE;color:#4338CA}
+.rpt-sec{margin-bottom:36px}
+.sec-ttl{font-size:16px;font-weight:700;color:var(--dark);margin-bottom:12px;padding-bottom:9px;border-bottom:1.5px solid var(--bg)}
+.sec-div{background:linear-gradient(135deg,var(--dark),var(--mid));color:#fff;padding:12px 18px;border-radius:8px;font-size:13.5px;font-weight:600;letter-spacing:.1px;margin-bottom:24px;margin-top:4px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:#FAFAFA;border-radius:10px;padding:13px 14px;border:1px solid var(--border);border-top:3px solid var(--accent)}
+.kpi-l{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.kpi-v{font-size:21px;font-weight:700;color:var(--dark);letter-spacing:-.5px}
+.kpi-d{font-size:11.5px;font-weight:600;margin-top:3px}
+.pos{color:var(--success)}.neg{color:var(--err)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:12px}
+.ch-box canvas{max-height:195px}
+.cl{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px}
+.dt{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:8px}
+.dt th{background:var(--mid);color:#fff;padding:8px 10px;text-align:left;font-size:11.5px;font-weight:600}
+.dt td{padding:7px 10px;border-bottom:1px solid var(--border);color:#374151}
+.dt tr:nth-child(even) td{background:#FAFAFA}
+.dt tr:hover td{background:#EEF2FF}
+.b{font-weight:700}.chg{font-weight:700}
+.ib{background:#EEF2FF;border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:13px 16px;margin-top:12px}
+.ib-l{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.ib ul{list-style:none;padding:0}
+.ib li{font-size:13.5px;color:var(--dark);line-height:1.58;padding:4px 0 4px 14px;position:relative}
+.ib li:before{content:"•";position:absolute;left:0;color:var(--accent);font-weight:700}
+.src{font-size:10.5px;color:#D1D5DB;text-align:right;margin-top:5px}
+.sk{background:linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 50%,#F3F4F6 75%);background-size:200% 100%;animation:ska 1.4s infinite;border-radius:6px;margin-bottom:10px}
+@keyframes ska{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.sk-t{height:20px;width:40%;margin-bottom:12px}
+.sk-l{height:13px;width:100%}.sk-l.w8{width:80%}.sk-l.w6{width:60%}
+.sk-b{height:90px;width:100%;margin-bottom:12px}
+.sk-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.sk-k{height:78px;border-radius:10px}
+@keyframes rev{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.revealed{animation:rev .4s ease forwards}
+@media print{#s1,#s2 .lp{display:none!important}#s2{display:block!important;height:auto!important}.rp{overflow:visible}.rp-in{padding:20px;max-width:100%}.rpt-sec{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- ═══ SCREEN 1 ═══ -->
+<div id="s1">
+  <header class="app-hdr">
+    <div class="hdr-left">
+      <div class="hdr-logo">✳</div>
+      <div>
+        <div class="hdr-name">Atlas Brief</div>
+        <div class="hdr-tag">MBR Report Generator</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-dot"></div>
+      <div class="hdr-badge">Pepper Atlas · CS Workspace</div>
+    </div>
+  </header>
+
+  <div class="form-wrap">
+    <div class="form-card">
+      <div class="form-top">
+        <h2>Generate Client MBR</h2>
+        <p>Configure the report parameters. Atlas Brief handles the rest.</p>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Client</label>
+        <select class="inp" id="client">
+          <option>Vantor Group</option>
+          <option>Meridian Corp</option>
+          <option>Crestline Industries</option>
+        </select>
+      </div>
+
+      <div class="field two-col">
+        <div><label class="lbl">Reporting Month</label><input type="text" class="inp" id="rMonth" value="June 2026"></div>
+        <div><label class="lbl">Previous Month</label><input type="text" class="inp" id="pMonth" value="July 2026"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label class="lbl">Report Modules</label>
+        <div class="toggle-row">
+          <div class="tl-left">
+            <label>Site Migration Analysis</label>
+            <span>Include pre/post migration keyword comparison</span>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="migOn" onchange="document.getElementById('migF').style.display=this.checked?'block':'none'">
+            <span class="tog-sl"></span>
+          </label>
+        </div>
+        <div class="mig-field" id="migF">
+          <input type="text" class="inp" id="migDate" value="October 1, 2025" placeholder="Migration date">
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label class="lbl">SEO Activities Completed</label>
+        <table class="act-tbl"><thead><tr><th style="width:73%">Activity</th><th style="width:20%">Status</th><th style="width:7%"></th></tr></thead>
+        <tbody id="db"></tbody></table>
+        <button class="add-btn" onclick="addD()">+ Add Activity</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label class="lbl">Planned Activities — Next Month</label>
+        <table class="act-tbl"><thead><tr><th style="width:50%">Activity</th><th style="width:22%">TAT</th><th style="width:21%">Project</th><th style="width:7%"></th></tr></thead>
+        <tbody id="pb"></tbody></table>
+        <button class="add-btn" onclick="addP()">+ Add Activity</button>
+      </div>
+
+      <button class="btn-gen" id="genBtn" onclick="start()">⚡ Generate Monthly Business Review</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN 2 ═══ -->
+<div id="s2">
+  <div class="split">
+    <div class="lp">
+      <div class="lp-hdr">
+        <div class="lp-badge"><span class="lp-badge-dot"></span>Atlas Brief Agent Pipeline</div>
+        <div class="lp-title" id="lp-t">Generating MBR...</div>
+        <div class="lp-sub" id="lp-s">Vantor Group · June 2026</div>
+        <div class="lp-timer" id="lp-tm">00:00</div>
+      </div>
+      <div class="lp-body" id="lp-b"></div>
+      <div class="lp-foot">
+        <div class="prog-track"><div class="prog-bar" id="prog"></div></div>
+        <div class="done-card" id="done-card">
+          <p>✓ Report Ready</p>
+          <small>Review and share with client</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="rp">
+      <div class="rp-in">
+        <div class="rpt-hdr">
+          <div>
+            <div class="rpt-brand" id="rpt-brand">VANTOR GROUP <span>|</span> pepper</div>
+            <div class="rpt-period" id="rpt-period">Monthly Business Review — June 2026</div>
+          </div>
+          <div class="rpt-meta">
+            <div>Prepared by <strong>Pepper CS Team</strong></div>
+            <div id="rpt-date">June 2026</div>
+            <div class="gen-badge" id="gb">⏳ Generating...</div>
+          </div>
+        </div>
+
+        <div id="sec-exec" class="rpt-sec"><div class="sec-ttl">Executive Performance Summary</div><div class="sk sk-t"></div><div class="sk sk-l"></div><div class="sk sk-l w8"></div><div class="sk sk-l w6"></div><div class="sk sk-l"></div><div class="sk sk-l w8"></div></div>
+        <div id="sec-qw" class="rpt-sec"><div class="sec-ttl">Quick Wins — <span id="qw-m"></span></div><div class="sk-kpi"><div class="sk sk-k"></div><div class="sk sk-k"></div><div class="sk sk-k"></div><div class="sk sk-k"></div></div><div class="sk sk-b"></div></div>
+        <div class="sec-div">Google Search Console — Monthly Organic Performance</div>
+        <div id="sec-org" class="rpt-sec"><div class="sec-ttl">Google Search Performance Overview</div><div class="sk-kpi"><div class="sk sk-k"></div><div class="sk sk-k"></div><div class="sk sk-k"></div><div class="sk sk-k"></div></div><div class="sk sk-b" style="height:130px"></div><div class="sk sk-l w8"></div><div class="sk sk-l w6"></div></div>
+        <div id="sec-comp" class="rpt-sec"><div class="sec-ttl">Vantor vs Competitors</div><div class="sk sk-b" style="height:150px"></div><div class="sk sk-l w8"></div><div class="sk sk-l w6"></div></div>
+        <div class="sec-div">Google Analytics — Organic Performance</div>
+        <div id="sec-web" class="rpt-sec"><div class="sec-ttl">Website Performance</div><div class="sk-kpi" style="grid-template-columns:repeat(3,1fr)"><div class="sk sk-k"></div><div class="sk sk-k"></div><div class="sk sk-k"></div></div><div class="sk sk-b"></div></div>
+        <div class="sec-div">AI & LLM Visibility</div>
+        <div id="sec-ai" class="rpt-sec"><div class="sec-ttl">AI & LLM Performance</div><div class="sk sk-b"></div><div class="sk sk-l w8"></div><div class="sk sk-l w6"></div></div>
+        <div id="sec-act" class="rpt-sec"><div class="sec-ttl">SEO Optimization & Activities</div><div class="sk sk-b"></div><div class="sk sk-b"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const D={
+  gsc:{curr:{cl:58940,im:14025600,ct:4.21,po:9.5},prev:{cl:49180,im:14371800,ct:3.42,po:10.8},
+    nb:{c:{cl:712,im:128540},p:{cl:666,im:143540}},
+    tr:[{m:"Oct'25",c:43050},{m:"Nov'25",c:42180},{m:"Dec'25",c:44490},{m:"Jan'26",c:49180},{m:"Feb'26",c:58940}],
+    wins:[{k:"green hydrogen steel plan",p:101,c:1,d:100},{k:"port operators",p:101,c:9,d:92},{k:"defence solutions",p:101,c:9,d:92},{k:"industrial parks",p:101,c:20,d:81},{k:"shri rn vantor",p:82,c:2,d:80},{k:"high performance sports training",p:101,c:28,d:73},{k:"green cement",p:101,c:36,d:65}],
+    pg:[{p:"/vantor-motors-india/",cl:15471,im:271066,ct:"5.71%",po:4.3},{p:"/",cl:14546,im:702038,ct:"2.07%",po:10.0},{p:"/careers/",cl:13790,im:267991,ct:"5.15%",po:13.4},{p:"/students-and-graduates/",cl:3446,im:81647,ct:"4.22%",po:6.1},{p:"/vantor-steel/",cl:2016,im:136379,ct:"1.48%",po:4.0}]},
+  ga4:{curr:{s:70500,e:42770,r:60.67},prev:{s:57930,e:35720,r:61.66},
+    tr:[{m:"Oct'25",s:86420,e:54280},{m:"Nov'25",s:71470,e:45740},{m:"Dec'25",s:53680,e:33740},{m:"Jan'26",s:57930,e:35720},{m:"Feb'26",s:70500,e:42770}],
+    pg:[{p:"/",cs:16778,ce:10485,ps:16380,pe:10590},{p:"/vantor-motors-india/",cs:15580,ce:9201,ps:2548,pe:1647},{p:"/careers/",cs:13270,ce:9788,ps:13470,pe:9985},{p:"/people",cs:5246,ce:3673,ps:3490,pe:2410},{p:"/students-and-graduates/",cs:2761,ce:1975,ps:2300,pe:1666}],
+    llm:{t:693,pt:605,src:[{s:"chatgpt.com",n:577,e:356,r:"61.7%"},{s:"gemini.google.com",n:73,e:46,r:"63.0%"},{s:"perplexity.ai",n:26,e:13,r:"50.0%"},{s:"perplexity",n:11,e:9,r:"81.8%"},{s:"claude.ai",n:5,e:3,r:"60.0%"},{s:"chat.mistral.ai",n:1,e:1,r:"100%"}]}},
+  sem:{
+    comp:[{d:"vantor.com",s:4.78,c:1.92},{d:"meridian.com",s:1.71,c:0.74},{d:"crestline.com",s:1.92,c:1.61},{d:"halcyon.com",s:0.05,c:0.02},{d:"orion.com",s:0.94,c:0.68}],
+    vis:[{m:"Apr'25",v:2.95,me:1.0,cr:1.0,ha:0.0,or:1.0},{m:"Jun'25",v:1.60,me:1.1,cr:0.7,ha:0.0,or:0.9},{m:"Aug'25",v:2.30,me:1.1,cr:1.2,ha:0.0,or:1.1},{m:"Oct'25",v:3.10,me:1.6,cr:3.0,ha:0.0,or:1.1},{m:"Dec'25",v:3.90,me:1.8,cr:2.0,ha:0.0,or:1.2},{m:"Feb'26",v:4.78,me:1.71,cr:1.92,ha:0.05,or:0.94}],
+    bl:[{d:"Vantor",da:44,r:2545},{d:"Meridian",da:52,r:7470},{d:"Crestline",da:58,r:7410},{d:"Orion",da:60,r:11420},{d:"Halcyon",da:50,r:3480}]},
+  ai:{tr:[{m:"Sep'25",c:221},{m:"Oct'25",c:214},{m:"Nov'25",c:256},{m:"Dec'25",c:242},{m:"Jan'26",c:222},{m:"Feb'26",c:205}]}
+};
+
+const STEPS=[
+  {id:"i1",g:"or",l:"Initializing agent pipeline"},
+  {id:"i2",g:"or",l:"Loading client profile from Atlas"},
+  {id:"d1",g:"da",l:"Pulling Google Search Console data"},
+  {id:"d2",g:"da",l:"Pulling Google Analytics 4 data"},
+  {id:"d3",g:"da",l:"Pulling Semrush competitive data"},
+  {id:"d4",g:"da",l:"Pulling Semrush AI + GEO data"},
+  {id:"d5",g:"da",l:"Computing deltas & Quick Wins engine"},
+  {id:"n1",g:"na",l:"Narrative: Quick Wins"},
+  {id:"n2",g:"na",l:"Narrative: Organic Search"},
+  {id:"n3",g:"na",l:"Narrative: Competitor Analysis"},
+  {id:"n4",g:"na",l:"Narrative: Website Performance"},
+  {id:"n5",g:"na",l:"Narrative: AI & LLM Visibility"},
+  {id:"n6",g:"na",l:"Narrative: SEO Activities"},
+  {id:"n7",g:"na",l:"Narrative: Executive Summary"},
+  {id:"r1",g:"or",l:"Rendering final report"}
+];
+const GL={or:"Orchestrator",da:"Data Intelligence Agent",na:"Narrative Agent"};
+let tmr=null,done=0;
+
+const DD=[
+  {n:"Monthly Performance Report — Jan'26",s:"Shared"},{n:"Newsroom Section Audit & Schema Fixes",s:"Shared"},
+  {n:"Blog Recommendations for Vantor (Life at Vantor articles)",s:"Shared"},{n:"Website Health Tracker — Jan Update",s:"Shared"},
+  {n:"GSC Not Indexed Analysis",s:"Shared"},{n:"Vantor Energy Migration",s:"In Progress"}
+];
+const PD=[
+  {n:"Monthly Performance Report — Feb'26",t:"06/03/2026",p:"Vantor Group"},{n:"Competitor Analysis — Vantor Energy",t:"06/03/2026",p:"Vantor Energy"},
+  {n:"Competitor Analysis — Vantor Infra",t:"06/03/2026",p:"Vantor Energy"},{n:"Vantor Infra — Keyword Research",t:"10/03/2026",p:"Vantor Infra"},
+  {n:"Technical Health Tracker",t:"13/03/2026",p:"Vantor Group"},{n:"Paid Article Publications",t:"15/03/2026",p:"Vantor Group"},
+  {n:"Vantor Energy Migration",t:"18/03/2026",p:"Vantor Energy"},{n:"Page Speed Report — Vantor Group & Vantor Energy",t:"22/03/2026",p:"Vantor Group"}
+];
+
+function addD(n="",s="Shared"){const tr=document.createElement("tr");tr.innerHTML='<td><input class="act-i" value="'+e(n)+'" placeholder="Activity name"></td><td><select class="act-s"><option'+(s==="Shared"?" selected":"")+'>Shared</option><option'+(s==="In Progress"?" selected":"")+'>In Progress</option><option'+(s==="Pending"?" selected":"")+'>Pending</option></select></td><td><button class="act-rm" onclick="this.closest(\'tr\').remove()">×</button></td>';document.getElementById("db").appendChild(tr)}
+function addP(n="",t="",p=""){const tr=document.createElement("tr");tr.innerHTML='<td><input class="act-i" value="'+e(n)+'" placeholder="Activity name"></td><td><input class="act-i" value="'+e(t)+'" placeholder="DD/MM/YYYY" style="width:90px"></td><td><input class="act-i" value="'+e(p)+'" placeholder="Project"></td><td><button class="act-rm" onclick="this.closest(\'tr\').remove()">×</button></td>';document.getElementById("pb").appendChild(tr)}
+function getDone(){return[...document.querySelectorAll("#db tr")].map(r=>({n:r.querySelectorAll("input,select")[0].value.trim(),s:r.querySelector("select").value})).filter(a=>a.n)}
+function getPlan(){return[...document.querySelectorAll("#pb tr")].map(r=>({n:r.querySelectorAll("input")[0].value.trim(),t:r.querySelectorAll("input")[1].value.trim(),p:r.querySelectorAll("input")[2].value.trim()})).filter(a=>a.n)}
+DD.forEach(a=>addD(a.n,a.s));PD.forEach(a=>addP(a.n,a.t,a.p));
+
+function e(t){return String(t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function fmt(n){return Number(n).toLocaleString()}
+function del(ms){return new Promise(r=>setTimeout(r,ms))}
+
+async function callAI(prompt){
+  const r=await fetch("https://purple-glade-atlas-brief-proxy.eman-rose1.workers.dev",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,
+      system:"You are an SEO strategist writing enterprise client Monthly Business Reviews. Respond ONLY with a raw JSON array of exactly 3 strings. Start with [ end with ]. No backticks. No markdown. No code fences. Each string is one insight bullet under 50 words using specific numbers.",
+      messages:[{role:"user",content:prompt}]})
+  });
+  const j=await r.json();
+  if(j.error)throw new Error(j.error.message);
+  let raw=j.content[0].text.trim().replace(/^```[\w]*\n?/,"").replace(/\n?```$/,"").trim();
+  const a=raw.indexOf("["),b=raw.lastIndexOf("]");
+  if(a!==-1&&b!==-1)raw=raw.slice(a,b+1);
+  return JSON.parse(raw);
+}
+
+function buildSteps(){
+  let h="",lg="";
+  STEPS.forEach(s=>{
+    if(s.g!==lg){h+=`<div class="ag-hdr ${s.g}"><span class="ag-dot"></span>${GL[s.g]}</div>`;lg=s.g}
+    h+=`<div class="step" id="st-${s.id}"><div class="si p" id="ic-${s.id}">○</div><div class="st" id="tx-${s.id}">${e(s.l)}</div></div>`;
+  });
+  document.getElementById("lp-b").innerHTML=h;
+}
+function mark(id,st){
+  const ic=document.getElementById("ic-"+id),tx=document.getElementById("tx-"+id);
+  if(!ic)return;
+  ic.className="si "+st;
+  tx.className="st"+(st==="r"?" ac":st==="d"?" dn":"");
+  if(st==="r")ic.textContent="●";
+  else if(st==="d"){ic.textContent="✓";done++}
+  else if(st==="e")ic.textContent="✗";
+  document.getElementById("prog").style.width=(done/STEPS.length*100)+"%";
+}
+function tick(){const el=document.getElementById("lp-tm"),s=Date.now();tmr=setInterval(()=>{const d=Math.floor((Date.now()-s)/1000);el.textContent=String(Math.floor(d/60)).padStart(2,"0")+":"+String(d%60).padStart(2,"0")},1000)}
+function fill(id,html){const el=document.getElementById(id);if(el){el.innerHTML=html;el.classList.add("revealed")}}
+function bul(arr){if(!Array.isArray(arr)||!arr.length)return"<li>Insights unavailable for this period.</li>";return arr.map(b=>"<li>"+e(b)+"</li>").join("")}
+
+function qwH(nb,mo){return`<div class="sec-ttl">Quick Wins — ${e(mo)}</div><div class="kpi-row"><div class="kpi"><div class="kpi-l">Clicks Growth</div><div class="kpi-v">+19.8%</div><div class="kpi-d pos">MoM ↑</div></div><div class="kpi"><div class="kpi-l">Sessions Growth</div><div class="kpi-v">+21.7%</div><div class="kpi-d pos">MoM ↑</div></div><div class="kpi"><div class="kpi-l">Visibility Score</div><div class="kpi-v">4.78%</div><div class="kpi-d pos">+1.92 MoM</div></div><div class="kpi"><div class="kpi-l">AI LLM Sessions</div><div class="kpi-v">693</div><div class="kpi-d pos">+14.5% MoM ↑</div></div></div><div class="cl">Top Keyword Ranking Improvements (6-Month)</div><table class="dt"><thead><tr><th>Keyword</th><th>Previous</th><th>Current</th><th>Gained</th></tr></thead><tbody>${D.gsc.wins.map(k=>`<tr><td>${e(k.k)}</td><td>${k.p>100?"101+":k.p}</td><td class="b">${k.c}</td><td class="chg pos">▲${k.d}</td></tr>`).join("")}</tbody></table><div class="ib"><div class="ib-l">Key Insights</div><ul>${bul(nb)}</ul></div>`}
+
+function orgH(nb,mo,pr,hm,md){return`<div class="sec-ttl">Google Search Performance Overview</div><div class="kpi-row"><div class="kpi"><div class="kpi-l">Total Clicks</div><div class="kpi-v">${fmt(58940)}</div><div class="kpi-d pos">+19.85% vs ${e(pr)}</div></div><div class="kpi"><div class="kpi-l">Impressions</div><div class="kpi-v">14.03M</div><div class="kpi-d neg">-2.41% vs ${e(pr)}</div></div><div class="kpi"><div class="kpi-l">Avg CTR</div><div class="kpi-v">4.21%</div><div class="kpi-d pos">from 3.42% ↑</div></div><div class="kpi"><div class="kpi-l">Avg Position</div><div class="kpi-v">9.5</div><div class="kpi-d pos">from 10.8 ↑</div></div></div><div class="two-col"><div><div class="cl">Click Trend (Oct'25—Feb'26)</div><div class="ch-box"><canvas id="ch1"></canvas></div></div><div><div class="cl">MoM Comparison</div><table class="dt" style="margin-top:0"><thead><tr><th>Metric</th><th>${e(mo)}</th><th>${e(pr)}</th><th>Change</th></tr></thead><tbody><tr><td>Total Clicks</td><td>58,940</td><td>49,180</td><td class="chg pos">+19.85%</td></tr><tr><td>Impressions</td><td>14.03M</td><td>14.37M</td><td class="chg neg">-2.41%</td></tr><tr><td>CTR</td><td>4.21%</td><td>3.42%</td><td class="chg pos">+20.12%</td></tr><tr><td>Avg Position</td><td>9.5</td><td>10.8</td><td class="chg pos">+1.30</td></tr></tbody></table></div></div><div class="cl">Top Performing Pages</div><table class="dt"><thead><tr><th>Page</th><th>Clicks</th><th>Impressions</th><th>CTR</th><th>Position</th></tr></thead><tbody>${D.gsc.pg.map(p=>`<tr><td>${e(p.p)}</td><td>${fmt(p.cl)}</td><td>${fmt(p.im)}</td><td>${p.ct}</td><td>${p.po}</td></tr>`).join("")}</tbody></table>${hm?`<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:7px;padding:10px 13px;font-size:13px;color:#92400E;margin-top:10px"><strong>Migration Context (since ${e(md)}):</strong> Post-migration traffic redistribution to vantorenergy.com and vantorinfra.com is ongoing — a planned structural realignment.</div>`:""}<div class="src">Source — Google Search Console</div><div class="ib"><div class="ib-l">Insights</div><ul>${bul(nb)}</ul></div>`}
+
+function compH(nb){return`<div class="sec-ttl">Vantor vs Competitors</div><div class="two-col"><div><div class="cl">Visibility Trend (Apr'25—Feb'26)</div><div class="ch-box"><canvas id="ch2"></canvas></div></div><div><div class="cl">Visibility Score — Feb'26</div><table class="dt" style="margin-top:0"><thead><tr><th>Domain</th><th>Score</th><th>MoM Change</th></tr></thead><tbody>${D.sem.comp.map((c,i)=>`<tr><td class="${i===0?"b":""}">${e(c.d)}${i===0?" 🏆":""}</td><td>${c.s}%</td><td class="chg pos">+${c.c.toFixed(2)}</td></tr>`).join("")}</tbody></table><div class="cl" style="margin-top:12px">Backlinking Gap</div><table class="dt" style="margin-top:0"><thead><tr><th>Domain</th><th>DA</th><th>Referring Domains</th></tr></thead><tbody>${D.sem.bl.map(b=>`<tr><td>${e(b.d)}</td><td>${b.da}</td><td>${fmt(b.r)}</td></tr>`).join("")}</tbody></table></div></div><div class="src">Source — Semrush</div><div class="ib"><div class="ib-l">Insights</div><ul>${bul(nb)}</ul></div>`}
+
+function webH(nb,mo,pr){return`<div class="sec-ttl">Website Performance</div><div class="kpi-row" style="grid-template-columns:repeat(3,1fr)"><div class="kpi"><div class="kpi-l">Sessions</div><div class="kpi-v">${fmt(70500)}</div><div class="kpi-d pos">+21.7% vs ${e(pr)}</div></div><div class="kpi"><div class="kpi-l">Engaged Sessions</div><div class="kpi-v">${fmt(42770)}</div><div class="kpi-d pos">+19.71% vs ${e(pr)}</div></div><div class="kpi"><div class="kpi-l">Engagement Rate</div><div class="kpi-v">60.67%</div><div class="kpi-d neg">from 61.66%</div></div></div><div class="two-col"><div><div class="cl">Session Trend (Oct'25—Feb'26)</div><div class="ch-box"><canvas id="ch3"></canvas></div></div><div><div class="cl">Top Landing Pages — ${e(mo)} vs ${e(pr)}</div><table class="dt" style="margin-top:0"><thead><tr><th>Page</th><th>Jun Sessions</th><th>Prev Sessions</th></tr></thead><tbody>${D.ga4.pg.map(p=>`<tr><td>${e(p.p)}</td><td class="b">${fmt(p.cs)}</td><td>${fmt(p.ps)}</td></tr>`).join("")}</tbody></table></div></div><div class="src">Source — Google Analytics</div><div class="ib"><div class="ib-l">Insights</div><ul>${bul(nb)}</ul></div>`}
+
+function aiH(nb,mo){return`<div class="sec-ttl">AI & LLM Performance — ${e(mo)}</div><div class="two-col"><div><div class="cl">AI Overview SERP Trend</div><div class="ch-box"><canvas id="ch4"></canvas></div></div><div><div class="cl">AI/LLM Traffic by Source</div><table class="dt" style="margin-top:0"><thead><tr><th>Source</th><th>Sessions</th><th>Engaged</th><th>Rate</th></tr></thead><tbody><tr><td class="b">Total</td><td class="b">${fmt(D.ga4.llm.t)}</td><td class="b">428</td><td class="b">61.76%</td></tr>${D.ga4.llm.src.map(s=>`<tr><td>${e(s.s)}</td><td>${s.n}</td><td>${s.e}</td><td>${s.r}</td></tr>`).join("")}</tbody></table><div style="background:#EEF2FF;border-radius:6px;padding:9px 12px;font-size:12.5px;color:var(--accent);margin-top:8px">ChatGPT + Gemini drive <strong>71.6%</strong> of AI traffic · Sessions <strong>+14.5% MoM</strong></div></div></div><div class="src">Source — Semrush AI / Google Analytics</div><div class="ib"><div class="ib-l">Insights</div><ul>${bul(nb)}</ul></div>`}
+
+function actH(nb,dn,pl,pr){
+  const dH=dn.map(a=>`<tr><td>${e(a.n)}</td><td style="font-weight:600;color:${a.s==="Shared"?"var(--success)":a.s==="In Progress"?"var(--warn)":"var(--muted)"}">${a.s==="Shared"?"✓ Shared":a.s==="In Progress"?"⏳ In Progress":"– Pending"}</td></tr>`).join("");
+  const pH=pl.map(a=>`<tr><td>${e(a.n)}</td><td>${e(a.t)}</td><td>${e(a.p)}</td></tr>`).join("");
+  return`<div class="sec-ttl">SEO Optimization & Activities</div>${Array.isArray(nb)&&nb.length?`<p style="font-size:13.5px;color:#374151;line-height:1.6;margin-bottom:16px">${nb.join(" ")}</p>`:""}<div class="cl">Work Completed — ${e(pr)}</div><table class="dt"><thead><tr><th style="width:75%">Activity</th><th>Status</th></tr></thead><tbody>${dH}</tbody></table><div class="cl" style="margin-top:18px">Planned Activities — Next Month</div><table class="dt"><thead><tr><th style="width:55%">Activity</th><th>TAT</th><th>Project</th></tr></thead><tbody>${pH}</tbody></table>`
+}
+
+function execH(nb,mo){return`<div class="sec-ttl">Executive Performance Summary — ${e(mo)}</div><div class="ib" style="border-left-color:var(--dark)"><ul>${bul(nb)}</ul></div>`}
+
+function charts(){
+  const g={color:"rgba(0,0,0,.04)"};
+  const base=(y)=>({responsive:true,plugins:{legend:{display:false}},scales:{y:{grid:g,...y},x:{grid:g}}});
+  const c1=document.getElementById("ch1");
+  if(c1)new Chart(c1,{type:"line",data:{labels:D.gsc.tr.map(t=>t.m),datasets:[{data:D.gsc.tr.map(t=>t.c),borderColor:"#16A34A",backgroundColor:"rgba(22,163,74,.07)",tension:.4,pointRadius:4,borderWidth:2.5}]},options:base({ticks:{callback:v=>v>=1000?Math.round(v/1000)+"K":v}})});
+  const c2=document.getElementById("ch2");
+  if(c2)new Chart(c2,{type:"line",data:{labels:D.sem.vis.map(t=>t.m),datasets:[{label:"Vantor",data:D.sem.vis.map(t=>t.v),borderColor:"#4F46E5",tension:.4,borderWidth:3,pointRadius:4},{label:"Meridian",data:D.sem.vis.map(t=>t.me),borderColor:"#16A34A",tension:.4,borderWidth:2},{label:"Crestline",data:D.sem.vis.map(t=>t.cr),borderColor:"#EA580C",tension:.4,borderWidth:2},{label:"Halcyon",data:D.sem.vis.map(t=>t.ha),borderColor:"#9333EA",tension:.4,borderWidth:1.5},{label:"Orion",data:D.sem.vis.map(t=>t.or),borderColor:"#CA8A04",tension:.4,borderWidth:2}]},options:{responsive:true,plugins:{legend:{position:"top",labels:{font:{size:10},boxWidth:10}}},scales:{y:{grid:g},x:{grid:g}}}});
+  const c3=document.getElementById("ch3");
+  if(c3)new Chart(c3,{type:"bar",data:{labels:D.ga4.tr.map(t=>t.m),datasets:[{label:"Sessions",data:D.ga4.tr.map(t=>t.s),backgroundColor:"rgba(79,70,229,.7)",borderRadius:3},{label:"Engaged",data:D.ga4.tr.map(t=>t.e),backgroundColor:"rgba(22,163,74,.6)",borderRadius:3}]},options:{responsive:true,plugins:{legend:{position:"top",labels:{font:{size:10},boxWidth:10}}},scales:{y:{grid:g,ticks:{callback:v=>v>=1000?Math.round(v/1000)+"K":v}},x:{grid:g}}}});
+  const c4=document.getElementById("ch4");
+  if(c4)new Chart(c4,{type:"bar",data:{labels:D.ai.tr.map(t=>t.m),datasets:[{data:D.ai.tr.map(t=>t.c),backgroundColor:"rgba(99,102,241,.7)",borderRadius:3}]},options:base({min:0})});
+}
+
+const FB={
+  qw:["Clicks grew 19.84% MoM to 58,940 while CTR improved from 3.42% to 4.21% with average position strengthening from 10.8 to 9.5 — reflecting improved content relevance and search targeting across key Vantor verticals.","Seven high-value keywords entered top-10 positions for the first time including rank #1 for green hydrogen steel plan and rank #9 for port operators and defence solutions, driven by post-migration page optimisations.","GA4 sessions surged 21.7% MoM to 70,500 while Vantor maintained the highest competitive visibility score at 4.78%, significantly ahead of all tracked competitors."],
+  org:["Total clicks grew 19.84% MoM to 58,940 while the impression decline of 2.41% reflects planned post-migration traffic redistribution to sub-domain properties — a structurally positive shift improving long-term topical relevance.","CTR improvement from 3.42% to 4.21% alongside position improvement from 10.8 to 9.5 indicates content is matching search intent more accurately, driving higher-quality clicks from existing impressions.","Top traffic pages remain /vantor-motors-india/ at 15,471 clicks, homepage at 14,546, and /careers/ at 13,790, with /vantor-motors-india/ showing exceptional MoM growth following targeted content optimisations."],
+  comp:["Vantor leads all tracked competitors with a visibility score of 4.78% (+1.92 MoM), significantly ahead of Crestline at 1.92% and Meridian at 1.71% — demonstrating accelerating organic search market share gains across key industrial verticals.","A backlink gap remains the primary growth opportunity: Vantor holds 2,545 referring domains at DA 44 versus Orion's 11,420 at DA 60; backlink building activities initiated this month will progressively close this gap.","Vantor now ranks for 21,400 keywords with improving positions on high-value non-branded terms including port operators, cement projects, and green cement india — indicating growing topical authority beyond core branded searches."],
+  web:["GA4 organic sessions grew 21.7% MoM to 70,500 with engaged sessions up 19.71% to 42,770, driven by PR articles and strong performance of Vantor Motors and Careers content across search and referral channels.","The /vantor-motors-india/ page showed exceptional momentum jumping from 2,548 sessions in January to 15,580 in February — a 511% MoM increase confirming the effectiveness of targeted content and technical optimisations.","Engagement rate remained robust at 60.67% despite higher session volume, with /careers/ maintaining 73.76% engagement — indicating strong content-audience alignment across both corporate and recruitment-focused pages."],
+  ai:["AI Overview appearances remained strong at 205 in February with Vantor maintaining #1 positions for all core branded queries including vantor, vantor group, vantor company, and vantor owner across Google's AI-generated results.","Total AI-referred sessions grew 14.5% MoM to 693, with ChatGPT.com driving 577 sessions (83.3% of total) and Gemini contributing 73 sessions — together accounting for 71.6% of all AI-referred visits.","Growing LLM traffic confirms Vantor content is being cited by generative AI platforms as an authoritative source, creating a new organic discovery channel that will compound with ongoing GEO optimisations."],
+  act:["This month Pepper completed key deliverables across performance reporting, technical auditing, schema fixes, content strategy, and website health tracking for Vantor Group properties.","All shared deliverables reflect continued progress on organic growth foundations and content authority building, maintaining strong execution momentum across the engagement.","Ongoing Vantor Energy migration work is progressing in parallel with recurring reporting and analysis cadences."],
+  exec:["Organic performance showed strong momentum with clicks up 19.84% MoM to 58,940, CTR improving from 3.42% to 4.21%, and average position strengthening from 10.8 to 9.5 — reflecting improved content targeting and post-migration structural realignment across Vantor's domain properties.","Vantor leads all tracked competitors with a visibility score of 4.78% (+1.92 MoM), with 7 high-value non-branded keywords entering top-10 positions for the first time including #1 ranking for green hydrogen steel plan — demonstrating accelerating topical authority.","AI search presence grew 14.5% MoM to 693 LLM-referred sessions with ChatGPT and Gemini jointly driving 71.6% of AI traffic — indicating strengthening brand authority across generative search platforms and growing share of AI-driven content discovery."]
+};
+
+async function run(cfg){
+  const{cl,mo,pr,hm,md,dn,pl}=cfg;
+  document.getElementById("lp-s").textContent=cl+" · "+mo;
+  document.getElementById("rpt-brand").innerHTML=cl.toUpperCase()+' <span>|</span> pepper';
+  document.getElementById("rpt-period").textContent="Monthly Business Review — "+mo;
+  document.getElementById("rpt-date").textContent=mo;
+  document.getElementById("qw-m").textContent=mo;
+
+  async function tryAI(prompt,fb){try{const r=await callAI(prompt);if(Array.isArray(r)&&r.length>=2)return r;}catch(err){console.log("Fallback used:",err.message)}return fb;}
+
+  mark("i1","r");await del(500);mark("i1","d");
+  mark("i2","r");await del(600);mark("i2","d");
+  mark("d1","r");await del(800);mark("d1","d");
+  mark("d2","r");await del(700);mark("d2","d");
+  mark("d3","r");await del(800);mark("d3","d");
+  mark("d4","r");await del(600);mark("d4","d");
+  mark("d5","r");await del(700);mark("d5","d");
+
+  mark("n1","r");
+  const n1=await tryAI("Write exactly 3 Quick Win bullets for "+cl+" SEO report "+mo+". Clicks +19.84% to 58940, CTR 3.42% to 4.21%, position 10.8 to 9.5. Keyword gains: green hydrogen steel plan 101 to rank 1, port operators 101 to 9. Sessions +21.7% to 70500. Visibility 4.78% leads competitors. AI sessions +14.5% to 693.",FB.qw);
+  fill("sec-qw",qwH(n1,mo));mark("n1","d");
+
+  mark("n2","r");
+  const n2=await tryAI("Write exactly 3 organic search bullets for "+cl+" "+mo+". Clicks 58940 +19.84% MoM. Impressions 14.03M -2.41%. CTR 4.21% from 3.42%. Position 9.5 from 10.8. Non-branded clicks 712 +6.91%. Top pages: vantor-motors-india 15471 clicks, homepage 14546, careers 13790."+(hm?" Post-migration since "+md+" traffic redistribution ongoing.":""),FB.org);
+  fill("sec-org",orgH(n2,mo,pr,hm,md));mark("n2","d");
+
+  mark("n3","r");
+  const n3=await tryAI("Write exactly 3 competitor analysis bullets for "+cl+" "+mo+". Vantor visibility 4.78 percent leads Crestline 1.92, Meridian 1.71, Orion 0.94. Backlinks: Vantor DA 44 with 2545 refs vs Orion DA 60 with 11420. Keywords improving: port operators, cement projects, green cement india.",FB.comp);
+  fill("sec-comp",compH(n3));mark("n3","d");
+
+  mark("n4","r");
+  const n4=await tryAI("Write exactly 3 website performance bullets for "+cl+" "+mo+". Sessions 70500 +21.7% MoM, engaged 42770 +19.71%, rate 60.67% from 61.66%. vantor-motors-india jumped from 2548 to 15580 sessions. Traffic driven by PR articles and Vantor Motors content.",FB.web);
+  fill("sec-web",webH(n4,mo,pr));mark("n4","d");
+
+  mark("n5","r");
+  const n5=await tryAI("Write exactly 3 AI and LLM visibility bullets for "+cl+" "+mo+". AI Overview 205 appearances, all branded queries rank 1. LLM traffic 693 sessions +14.5% MoM. ChatGPT 577 sessions 83.3 percent, Gemini 73. Together 71.6 percent of AI traffic.",FB.ai);
+  fill("sec-ai",aiH(n5,mo));mark("n5","d");
+
+  mark("n6","r");
+  const n6=await tryAI("Write exactly 3 short bullets summarizing SEO activities for "+cl+" "+mo+". Work completed: performance reporting, newsroom audit, schema fixes, blog recommendations, website health tracker, GSC not indexed analysis, Vantor Energy migration in progress.",FB.act);
+  fill("sec-act",actH(n6,dn,pl,pr));mark("n6","d");
+
+  mark("n7","r");
+  const n7=await tryAI("Write exactly 3 executive summary bullets for "+cl+" "+mo+". Organic: clicks +19.84 percent to 58940, CTR 4.21 percent, position 9.5."+(hm?" Post-migration redistribution ongoing.":"")+" Competitive: Vantor 4.78 percent visibility leads all. AI: LLM sessions +14.5 percent to 693, ChatGPT plus Gemini 71.6 percent of AI traffic.",FB.exec);
+  fill("sec-exec",execH(n7,mo));mark("n7","d");
+
+  mark("r1","r");await del(300);
+  requestAnimationFrame(charts);
+  mark("r1","d");
+
+  clearInterval(tmr);
+  document.getElementById("lp-t").textContent="Report Ready";
+  document.getElementById("gb").textContent="✓ Generated by Atlas Brief";
+  document.getElementById("gb").className="gen-badge rdy";
+  document.getElementById("done-card").style.display="block";
+}
+
+function start(){
+  const cfg={cl:document.getElementById("client").value,mo:document.getElementById("rMonth").value,pr:document.getElementById("pMonth").value,hm:document.getElementById("migOn").checked,md:document.getElementById("migDate").value,dn:getDone(),pl:getPlan()};
+  document.getElementById("s1").style.display="none";
+  document.getElementById("s2").style.display="block";
+  buildSteps();tick();run(cfg);
+}
+</script>
+</body>
+</html>
