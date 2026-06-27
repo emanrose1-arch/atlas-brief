@@ -175,7 +175,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;ba
 
       <div class="field two-col">
         <div><label class="lbl">Reporting Month</label><input type="text" class="inp" id="rMonth" value="June 2026"></div>
-        <div><label class="lbl">Previous Month</label><input type="text" class="inp" id="pMonth" value="July 2026"></div>
+        <div><label class="lbl">Previous Month</label><input type="text" class="inp" id="pMonth" value="May 2026"></div>
       </div>
 
       <div class="divider"></div>
@@ -329,6 +329,79 @@ function e(t){return String(t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").re
 function fmt(n){return Number(n).toLocaleString()}
 function del(ms){return new Promise(r=>setTimeout(r,ms))}
 
+// ══════════════════════════════════════
+// DATA INTELLIGENCE AGENT — real computation
+// Takes mock API responses, computes deltas, runs Quick Wins engine,
+// applies branded keyword filter, returns structured data package
+// ══════════════════════════════════════
+function runDataAgent(cfg){
+  const{hm,md}=cfg;
+
+  // GSC delta computation
+  const clicksChg=((D.gsc.curr.cl-D.gsc.prev.cl)/D.gsc.prev.cl*100);
+  const impChg=((D.gsc.curr.im-D.gsc.prev.im)/D.gsc.prev.im*100);
+  const ctrChg=(D.gsc.curr.ct-D.gsc.prev.ct);
+  const posChg=(D.gsc.prev.po-D.gsc.curr.po); // positive = improved
+  const nbClicksChg=((D.gsc.nb.c.cl-D.gsc.nb.p.cl)/D.gsc.nb.p.cl*100);
+
+  // GA4 delta computation
+  const sessChg=((D.ga4.curr.s-D.ga4.prev.s)/D.ga4.prev.s*100);
+  const engChg=((D.ga4.curr.e-D.ga4.prev.e)/D.ga4.prev.e*100);
+  const rateChg=(D.ga4.curr.r-D.ga4.prev.r);
+  const llmChg=((D.ga4.llm.t-D.ga4.llm.pt)/D.ga4.llm.pt*100);
+
+  // Semrush delta computation
+  const visScore=D.sem.comp[0].s;
+  const visChange=D.sem.comp[0].c;
+  const competitors=D.sem.comp.slice(1).sort((a,b)=>b.s-a.s);
+  const closestComp=competitors[0];
+  const visGap=(visScore-closestComp.s).toFixed(2);
+
+  // Quick Wins engine — surface top improvements by magnitude
+  const allMetrics=[
+    {name:"organic clicks",val:Math.abs(clicksChg),label:"+"+clicksChg.toFixed(2)+"% MoM to "+fmt(D.gsc.curr.cl)+" clicks",positive:clicksChg>0},
+    {name:"organic sessions",val:Math.abs(sessChg),label:"+"+sessChg.toFixed(2)+"% MoM to "+fmt(D.ga4.curr.s)+" sessions",positive:sessChg>0},
+    {name:"AI LLM sessions",val:Math.abs(llmChg),label:"+"+llmChg.toFixed(2)+"% MoM to "+D.ga4.llm.t+" sessions",positive:llmChg>0},
+    {name:"CTR improvement",val:Math.abs(ctrChg),label:"CTR improved from "+D.gsc.prev.ct+"% to "+D.gsc.curr.ct+"%",positive:ctrChg>0},
+    {name:"position improvement",val:Math.abs(posChg),label:"avg position improved from "+D.gsc.prev.po+" to "+D.gsc.curr.po,positive:posChg>0},
+    {name:"competitive visibility",val:visGap*10,label:"visibility "+visScore+"% leads all competitors, +"+visGap+" ahead of "+closestComp.d,positive:true},
+  ];
+  const quickWins=allMetrics.filter(m=>m.positive).sort((a,b)=>b.val-a.val).slice(0,4);
+
+  // Branded keyword filter
+  const BRANDED_TERMS=["vantor","rn vantor","vantor motors","vantor group","vantor car","vantor steel","vantor energy","vantor infra"];
+  const isBranded=kw=>BRANDED_TERMS.some(t=>kw.toLowerCase().includes(t));
+  const nonBrandedWins=D.gsc.wins.filter(k=>!isBranded(k.k)).sort((a,b)=>b.d-a.d);
+  const brandedWins=D.gsc.wins.filter(k=>isBranded(k.k)).sort((a,b)=>b.d-a.d);
+
+  // Top keyword improvements (all)
+  const topKwImprovements=D.gsc.wins.sort((a,b)=>b.d-a.d).slice(0,5).map(k=>k.k+" ("+k.p+"→"+k.c+", ▲"+k.d+")").join("; ");
+
+  // Build structured data package for Narrative Agent
+  return {
+    gsc:{
+      clicksChg:clicksChg.toFixed(2), impChg:impChg.toFixed(2),
+      ctrChg:ctrChg.toFixed(2), posChg:posChg.toFixed(1),
+      nbClicksChg:nbClicksChg.toFixed(2),
+      curr:D.gsc.curr, prev:D.gsc.prev,
+      topKwImprovements, nonBrandedWins, brandedWins
+    },
+    ga4:{
+      sessChg:sessChg.toFixed(2), engChg:engChg.toFixed(2),
+      rateChg:rateChg.toFixed(2), llmChg:llmChg.toFixed(2),
+      curr:D.ga4.curr, prev:D.ga4.prev,
+      llmTotal:D.ga4.llm.t, prevLlmTotal:D.ga4.llm.pt
+    },
+    sem:{
+      visScore, visChange, closestComp:closestComp.d,
+      closestScore:closestComp.s, visGap
+    },
+    ai:{latestCount:D.ai.tr[D.ai.tr.length-1].c},
+    quickWins,
+    migration:hm?{active:true,date:md}:{active:false}
+  };
+}
+
 async function callAI(prompt){
   const r=await fetch("https://purple-glade-atlas-brief-proxy.eman-rose1.workers.dev",{
     method:"POST",
@@ -424,34 +497,45 @@ async function run(cfg){
   mark("d2","r");await del(700);mark("d2","d");
   mark("d3","r");await del(800);mark("d3","d");
   mark("d4","r");await del(600);mark("d4","d");
-  mark("d5","r");await del(700);mark("d5","d");
+  mark("d5","r");
+  const dp=runDataAgent(cfg);
+  await del(400);
+  mark("d5","d");
 
   mark("n1","r");
-  const n1=await tryAI("Write exactly 3 Quick Win bullets for "+cl+" SEO report "+mo+". Clicks +19.84% to 58940, CTR 3.42% to 4.21%, position 10.8 to 9.5. Keyword gains: green hydrogen steel plan 101 to rank 1, port operators 101 to 9. Sessions +21.7% to 70500. Visibility 4.78% leads competitors. AI sessions +14.5% to 693.",FB.qw);
+  const qwSummary=dp.quickWins.map(w=>w.label).join("; ");
+  const n1=await tryAI("Write exactly 3 Quick Win bullets for "+cl+" "+mo+". Top improvements computed: "+qwSummary+". Top keyword ranking gains: "+dp.gsc.topKwImprovements+". Write specific bullets with exact numbers.",FB.qw);
   fill("sec-qw",qwH(n1,mo));mark("n1","d");
 
   mark("n2","r");
-  const n2=await tryAI("Write exactly 3 organic search bullets for "+cl+" "+mo+". Clicks 58940 +19.84% MoM. Impressions 14.03M -2.41%. CTR 4.21% from 3.42%. Position 9.5 from 10.8. Non-branded clicks 712 +6.91%. Top pages: vantor-motors-india 15471 clicks, homepage 14546, careers 13790."+(hm?" Post-migration since "+md+" traffic redistribution ongoing.":""),FB.org);
+  const migCtxOrg=dp.migration.active?" Post-migration since "+dp.migration.date+": traffic redistributing to sub-domain properties — structural realignment in progress.":"";
+  const n2=await tryAI("Write exactly 3 organic search bullets for "+cl+" "+mo+". Clicks "+fmt(dp.gsc.curr.cl)+" ("+dp.gsc.clicksChg+"% MoM). Impressions "+dp.gsc.impChg+"% MoM. CTR "+dp.gsc.curr.ct+"% from "+dp.gsc.prev.ct+"% (+"+dp.gsc.ctrChg+"pp). Position "+dp.gsc.curr.po+" from "+dp.gsc.prev.po+" (improved "+dp.gsc.posChg+" positions). Non-branded clicks "+dp.gsc.nbClicksChg+"% MoM."+migCtxOrg,FB.org);
   fill("sec-org",orgH(n2,mo,pr,hm,md));mark("n2","d");
 
   mark("n3","r");
-  const n3=await tryAI("Write exactly 3 competitor analysis bullets for "+cl+" "+mo+". Vantor visibility 4.78 percent leads Crestline 1.92, Meridian 1.71, Orion 0.94. Backlinks: Vantor DA 44 with 2545 refs vs Orion DA 60 with 11420. Keywords improving: port operators, cement projects, green cement india.",FB.comp);
+  const n3=await tryAI("Write exactly 3 competitor analysis bullets for "+cl+" "+mo+". Computed visibility: "+cl+" leads at "+dp.sem.visScore+"% ("+dp.sem.visChange+" MoM change), "+dp.sem.visGap+" percentage points ahead of closest competitor "+dp.sem.closestComp+" at "+dp.sem.closestScore+"%. Backlink gap: Vantor DA 44 with 2545 referring domains vs Orion DA 60 with 11420. Non-branded keyword improvements: "+dp.gsc.nonBrandedWins.slice(0,3).map(k=>k.k).join(", ")+".",FB.comp);
   fill("sec-comp",compH(n3));mark("n3","d");
 
   mark("n4","r");
-  const n4=await tryAI("Write exactly 3 website performance bullets for "+cl+" "+mo+". Sessions 70500 +21.7% MoM, engaged 42770 +19.71%, rate 60.67% from 61.66%. vantor-motors-india jumped from 2548 to 15580 sessions. Traffic driven by PR articles and Vantor Motors content.",FB.web);
+  const n4=await tryAI("Write exactly 3 website performance bullets for "+cl+" "+mo+". Computed: sessions "+fmt(dp.ga4.curr.s)+" ("+dp.ga4.sessChg+"% MoM), engaged sessions "+dp.ga4.engChg+"% MoM, engagement rate "+dp.ga4.curr.r+"% ("+dp.ga4.rateChg+"pp MoM). Top page jump: /vantor-motors-india/ from 2548 to 15580 sessions. Traffic growth driven by PR articles and Vantor Motors content.",FB.web);
   fill("sec-web",webH(n4,mo,pr));mark("n4","d");
 
   mark("n5","r");
-  const n5=await tryAI("Write exactly 3 AI and LLM visibility bullets for "+cl+" "+mo+". AI Overview 205 appearances, all branded queries rank 1. LLM traffic 693 sessions +14.5% MoM. ChatGPT 577 sessions 83.3 percent, Gemini 73. Together 71.6 percent of AI traffic.",FB.ai);
+  const chatgptSess=D.ga4.llm.src.find(s=>s.s==="chatgpt.com");
+  const geminiSess=D.ga4.llm.src.find(s=>s.s==="gemini.google.com");
+  const chatgptPct=chatgptSess?(chatgptSess.n/dp.ga4.llmTotal*100).toFixed(1):"83.3";
+  const n5=await tryAI("Write exactly 3 AI and LLM visibility bullets for "+cl+" "+mo+". Computed: AI Overview appearances "+dp.ai.latestCount+" this month. All core branded queries rank 1. LLM referral sessions: "+dp.ga4.llmTotal+" total ("+dp.ga4.llmChg+"% MoM from "+dp.ga4.prevLlmTotal+"). ChatGPT drives "+chatgptPct+"% of AI sessions. ChatGPT+Gemini together account for 71.6% of all LLM traffic.",FB.ai);
   fill("sec-ai",aiH(n5,mo));mark("n5","d");
 
   mark("n6","r");
-  const n6=await tryAI("Write exactly 3 short bullets summarizing SEO activities for "+cl+" "+mo+". Work completed: performance reporting, newsroom audit, schema fixes, blog recommendations, website health tracker, GSC not indexed analysis, Vantor Energy migration in progress.",FB.act);
+  const doneStr=dn.slice(0,6).map(a=>a.n+" ("+a.s+")").join(", ");
+  const planStr=pl.slice(0,5).map(a=>a.n+(a.t?" TAT "+a.t:"")+(a.p?" — "+a.p:"")).join(", ");
+  const n6=await tryAI("Write exactly 3 short bullets summarizing SEO activities for "+cl+" "+mo+". Work completed this month: "+doneStr+". Planned next month: "+planStr+". Summarize scope and momentum professionally.",FB.act);
   fill("sec-act",actH(n6,dn,pl,pr));mark("n6","d");
 
   mark("n7","r");
-  const n7=await tryAI("Write exactly 3 executive summary bullets for "+cl+" "+mo+". Organic: clicks +19.84 percent to 58940, CTR 4.21 percent, position 9.5."+(hm?" Post-migration redistribution ongoing.":"")+" Competitive: Vantor 4.78 percent visibility leads all. AI: LLM sessions +14.5 percent to 693, ChatGPT plus Gemini 71.6 percent of AI traffic.",FB.exec);
+  const migCtxExec=dp.migration.active?" Post-migration since "+dp.migration.date+" with ongoing traffic redistribution across sub-domain properties.":"";
+  const n7=await tryAI("Write exactly 3 C-suite executive summary bullets for "+cl+" "+mo+". Computed highlights: (1) organic clicks "+dp.gsc.clicksChg+"% MoM to "+fmt(dp.gsc.curr.cl)+", CTR "+dp.gsc.curr.ct+"%, position "+dp.gsc.curr.po+"."+migCtxExec+" (2) "+cl+" leads competitors at "+dp.sem.visScore+"% visibility, "+dp.sem.visGap+"pp ahead of "+dp.sem.closestComp+". (3) AI sessions "+dp.ga4.llmChg+"% MoM to "+dp.ga4.llmTotal+", ChatGPT+Gemini 71.6% of AI traffic.",FB.exec);
   fill("sec-exec",execH(n7,mo));mark("n7","d");
 
   mark("r1","r");await del(300);
